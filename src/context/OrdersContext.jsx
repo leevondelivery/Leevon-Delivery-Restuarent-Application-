@@ -24,6 +24,13 @@ export function OrdersProvider({ children }) {
         throw new Error("No restaurant ID found. Please log in again.");
       }
 
+      if (storedRestId === "demo_rest_101") {
+        setOrders([]);
+        setError(null);
+        setLoading(false);
+        return;
+      }
+
       console.log(`Global polling: fetching accepted orders for restaurantId: ${storedRestId} from ${API_URL}`);
       const res = await fetch(`${API_URL}/accepted-orders/${storedRestId}`);
       if (!res.ok) {

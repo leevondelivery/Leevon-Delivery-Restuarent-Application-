@@ -2,7 +2,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import LogoLoader from "../../../components/LogoLoader";
@@ -53,6 +53,25 @@ export default function SettingsPage() {
       console.error("Error clearing session:", error);
       router.replace("/");
     }
+  };
+
+  const handleDeleteAccount = () => {
+    if (Platform.OS === "web") {
+      alert("Delete Account Request\n\nTo delete your account and associated data, please email support@leevondelivery.in. Your data will be deleted within 30 days.");
+    } else {
+      Alert.alert(
+        "Delete Account Request",
+        "To delete your account and associated data, please email support@leevondelivery.in.\n\nYour account and data will be permanently deleted within 30 days.",
+        [{ text: "OK" }]
+      );
+    }
+  };
+
+  const handleOpenPrivacyPolicy = () => {
+    const url = "https://privacypolicyrestuarent.vercel.app/";
+    Linking.openURL(url).catch((err) =>
+      console.error("Failed to open privacy policy link:", err)
+    );
   };
 
   if (loading) {
@@ -126,7 +145,7 @@ export default function SettingsPage() {
             </Pressable>
 
             {/* My Reviews */}
-            <Pressable
+            {/* <Pressable
               style={({ pressed }) => [
                 styles.actionItem,
                 pressed && { opacity: 0.95, transform: [{ scale: 0.99 }] }
@@ -137,7 +156,7 @@ export default function SettingsPage() {
                 <Text style={styles.actionText}>My Reviews</Text>
               </View>
               <FontAwesome name="chevron-right" size={17} color="#1E1E1D" />
-            </Pressable>
+            </Pressable> */}
 
             {/* Contact Us */}
             <Pressable
@@ -152,6 +171,36 @@ export default function SettingsPage() {
                 <Text style={styles.actionText}>Contact Us</Text>
               </View>
               <FontAwesome name="chevron-right" size={17} color="#1E1E1D" />
+            </Pressable>
+
+            {/* Privacy Policy */}
+            <Pressable
+              onPress={handleOpenPrivacyPolicy}
+              style={({ pressed }) => [
+                styles.actionItem,
+                pressed && { opacity: 0.95, transform: [{ scale: 0.99 }] }
+              ]}
+            >
+              <View style={styles.actionLeftRow}>
+                <FontAwesome name="shield" size={20} color="#1E1E1D" style={styles.actionIcon} />
+                <Text style={styles.actionText}>Privacy Policy</Text>
+              </View>
+              <FontAwesome name="chevron-right" size={17} color="#1E1E1D" />
+            </Pressable>
+
+            {/* Delete Account */}
+            <Pressable
+              onPress={handleDeleteAccount}
+              style={({ pressed }) => [
+                styles.actionItem,
+                pressed && { opacity: 0.95, transform: [{ scale: 0.99 }] }
+              ]}
+            >
+              <View style={styles.actionLeftRow}>
+                <FontAwesome name="trash" size={20} color="#E05638" style={styles.actionIcon} />
+                <Text style={[styles.actionText, { color: "#E05638" }]}>Delete Account</Text>
+              </View>
+              <FontAwesome name="chevron-right" size={17} color="#E05638" />
             </Pressable>
 
             {/* Logout */}

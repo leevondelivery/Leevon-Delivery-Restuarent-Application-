@@ -131,7 +131,7 @@ export default function RestaurantProfilePage() {
             </View>
 
             {/* Coordinates */}
-            <View style={styles.detailRow}>
+            {/* <View style={styles.detailRow}>
               <View style={styles.iconWrapper}>
                 <FontAwesome name="globe" size={18} color="#1E1E1D" />
               </View>
@@ -141,7 +141,7 @@ export default function RestaurantProfilePage() {
                   {details.lat} , {details.lng}
                 </Text>
               </View>
-            </View>
+            </View> */}
 
             {/* Address */}
             <View style={styles.detailRow}>
@@ -165,13 +165,13 @@ export default function RestaurantProfilePage() {
               </View>
             </View>
 
-            {/* Location Button */}
+            {/* Location Button 
             {details.restLocation !== "N/A" && (
               <Pressable onPress={openMapLink} style={styles.locationButton}>
                 <FontAwesome name="map-marker" size={18} color="#FFFFFF" style={styles.locationButtonIcon} />
                 <Text style={styles.locationButtonText}>View Location on Map</Text>
               </Pressable>
-            )}
+            )}*/}
           </View>
         </ScrollView>
       </SafeAreaView>

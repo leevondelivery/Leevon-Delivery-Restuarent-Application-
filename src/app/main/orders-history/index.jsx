@@ -292,6 +292,13 @@ export default function OrdersPage() {
       }
       setRestaurantId(storedRestId);
 
+      if (storedRestId === "demo_rest_101") {
+        setOrders([]);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
       console.log(`Fetching orders for restaurantId: ${storedRestId} from ${API_URL}`);
       const res = await fetch(`${API_URL}/restaurant-orders/${storedRestId}`);
       

@@ -9,13 +9,13 @@ const isMobile = Platform.OS === "ios" || Platform.OS === "android";
 
 export default function ContactUsPage() {
   const handlePressPhone = () => {
-    Linking.openURL("tel:+91100").catch((err) =>
+    Linking.openURL("tel:+917207610235").catch((err) =>
       console.error("Failed to dial phone number:", err)
     );
   };
 
   const handlePressEmail = () => {
-    Linking.openURL("mailto:spv@gmail.com").catch((err) =>
+    Linking.openURL("mailto:support@leevondelivery.in").catch((err) =>
       console.error("Failed to open email client:", err)
     );
   };
@@ -75,7 +75,7 @@ export default function ContactUsPage() {
             >
               <View style={localStyles.rowLeft}>
                 <FontAwesome name="phone" size={24} color="#1E1E1D" style={localStyles.icon} />
-                <Text style={localStyles.valueText}>+91 100</Text>
+                <Text style={localStyles.valueText}>+91 7207610235</Text>
               </View>
             </Pressable>
 
@@ -89,12 +89,12 @@ export default function ContactUsPage() {
             >
               <View style={localStyles.rowLeft}>
                 <FontAwesome name="envelope" size={20} color="#1E1E1D" style={localStyles.icon} />
-                <Text style={localStyles.valueText}>spv@gmail.com</Text>
+                <Text style={localStyles.valueText}>support@leevondelivery.in</Text>
               </View>
             </Pressable>
 
             {/* Instagram Capsule */}
-            <Pressable
+            {/* <Pressable
               onPress={() => handlePressSocial("instagram")}
               style={({ pressed }) => [
                 localStyles.capsuleRow,
@@ -105,10 +105,10 @@ export default function ContactUsPage() {
                 <FontAwesome name="instagram" size={22} color="#1E1E1D" style={localStyles.icon} />
                 <Text style={localStyles.valueText}>Instagram</Text>
               </View>
-            </Pressable>
+            </Pressable> */}
 
             {/* Facebook Capsule */}
-            <Pressable
+            {/* <Pressable
               onPress={() => handlePressSocial("facebook")}
               style={({ pressed }) => [
                 localStyles.capsuleRow,
@@ -119,10 +119,10 @@ export default function ContactUsPage() {
                 <FontAwesome name="facebook" size={22} color="#1E1E1D" style={localStyles.icon} />
                 <Text style={localStyles.valueText}>Facebook</Text>
               </View>
-            </Pressable>
+            </Pressable> */}
 
             {/* Twitter Capsule */}
-            <Pressable
+            {/* <Pressable
               onPress={() => handlePressSocial("twitter")}
               style={({ pressed }) => [
                 localStyles.capsuleRow,
@@ -133,7 +133,7 @@ export default function ContactUsPage() {
                 <FontAwesome name="twitter" size={22} color="#1E1E1D" style={localStyles.icon} />
                 <Text style={localStyles.valueText}>Twitter</Text>
               </View>
-            </Pressable>
+            </Pressable> */}
 
           </View>
         </View>

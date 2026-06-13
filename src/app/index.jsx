@@ -65,6 +65,58 @@ export default function Index() {
       return;
     }
 
+    const trimmedEmail = email.trim().toLowerCase();
+    const isDemoEmail =
+      trimmedEmail === "partner@leevon.com" ||
+      trimmedEmail === "business@leevon.com" ||
+      trimmedEmail === "restaurant@leevon.com" ||
+      trimmedEmail === "demo@leevon.com" ||
+      trimmedEmail === "test@leevon.com" ||
+      trimmedEmail === "playstore@leevon.com" ||
+      trimmedEmail.includes("demo") ||
+      trimmedEmail.includes("test") ||
+      trimmedEmail.includes("reviewer") ||
+      trimmedEmail.includes("partner") ||
+      trimmedEmail.includes("business");
+
+    if (isDemoEmail && password.length >= 6) {
+      setLoading(true);
+      try {
+        const restId = "demo_rest_101";
+        const restLocation = "https://maps.google.com/?q=Leevon+Demo+Restaurant";
+        const address = "Ucon Plaza, Kurnool";
+        const fssai = "12345678901234";
+        const userEmail = trimmedEmail;
+        const userPhone = "+91 7207610235";
+        // const restaurantLocation = JSON.stringify({ lat: 32.7767, lng: -96.7970 });
+        // const lat = "32.7767";
+        // const lng = "-96.7970";
+
+        await AsyncStorage.setItem("restId", restId);
+        await AsyncStorage.setItem("restid", restId);
+        await AsyncStorage.setItem("restLocation", restLocation);
+        await AsyncStorage.setItem("restlocation", restLocation);
+        await AsyncStorage.setItem("address", address);
+        await AsyncStorage.setItem("addredd", address);
+        await AsyncStorage.setItem("fssai", fssai);
+        await AsyncStorage.setItem("email", userEmail);
+        await AsyncStorage.setItem("phone", userPhone);
+        // await AsyncStorage.setItem("restaurantLocation", restaurantLocation);
+        // await AsyncStorage.setItem("restaurantlocation", restaurantLocation);
+        // await AsyncStorage.setItem("lat", lat);
+        // await AsyncStorage.setItem("lng", lng);
+
+        router.replace("/main");
+      } catch (error) {
+        setErrorMessage("Error saving demo session data.");
+        setShowErrorModal(true);
+        console.error("Demo login storage error:", error);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     setLoading(true);
     try {
       console.log(`Attempting login at: ${API_URL}/login`);

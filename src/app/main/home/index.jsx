@@ -49,20 +49,31 @@ export default function MainPage() {
 
         // Fetch active status from backend
         if (restId) {
-          console.log(`Fetching status for restaurantId: ${restId}`);
-          const res = await fetch(`${API_URL}/get-status/${restId}`);
-          const statusData = await res.json();
-          if (res.ok && statusData.success) {
-            setIsOpen(statusData.isActive);
-            animationValue.setValue(statusData.isActive ? 1 : 0);
-          }
+          if (restId === "demo_rest_101") {
+            setIsOpen(true);
+            animationValue.setValue(1);
+            setStats({
+              todayEarnings: 0,
+              todayOrders: 0,
+              totalEarnings: 0,
+              totalOrders: 0,
+            });
+          } else {
+            console.log(`Fetching status for restaurantId: ${restId}`);
+            const res = await fetch(`${API_URL}/get-status/${restId}`);
+            const statusData = await res.json();
+            if (res.ok && statusData.success) {
+              setIsOpen(statusData.isActive);
+              animationValue.setValue(statusData.isActive ? 1 : 0);
+            }
 
-          // Fetch restaurant completed orders statistics
-          console.log(`Fetching stats for restaurantId: ${restId}`);
-          const statsRes = await fetch(`${API_URL}/restaurant-stats/${restId}`);
-          const statsData = await statsRes.json();
-          if (statsRes.ok && statsData.success) {
-            setStats(statsData.stats);
+            // Fetch restaurant completed orders statistics
+            console.log(`Fetching stats for restaurantId: ${restId}`);
+            const statsRes = await fetch(`${API_URL}/restaurant-stats/${restId}`);
+            const statsData = await statsRes.json();
+            if (statsRes.ok && statsData.success) {
+              setStats(statsData.stats);
+            }
           }
         }
       } catch (error) {
@@ -111,6 +122,10 @@ export default function MainPage() {
     }).start();
 
     // Send update request to database
+    if (details.restId === "demo_rest_101") {
+      return;
+    }
+
     try {
       console.log(`Toggling status to ${nextState} for restaurantId: ${details.restId}`);
       const res = await fetch(`${API_URL}/toggle-status`, {
@@ -186,7 +201,7 @@ export default function MainPage() {
           </View>
 
           {/* My Menu Button */}
-          <View style={styles.menuButtonContainer}>
+          {/* <View style={styles.menuButtonContainer}>
             <Pressable
               onPress={() => console.log("My Menu pressed")}
               style={({ pressed }) => [
@@ -197,7 +212,7 @@ export default function MainPage() {
               <FontAwesome name="cutlery" size={16} color="#FFFFFF" style={styles.menuButtonIcon} />
               <Text style={styles.menuButtonText}>MY MENU</Text>
             </Pressable>
-          </View>
+          </View> */}
 
           {/* Stats Grid Cards */}
           <View style={styles.statsGrid}>

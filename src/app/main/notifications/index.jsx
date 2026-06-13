@@ -18,9 +18,9 @@ export default function NotificationsTabPlaceholder() {
 
         {/* Blank Content Area */}
         <View style={localStyles.content}>
-          <FontAwesome name="hourglass-start" size={48} color="#777265" style={{ marginBottom: 16 }} />
-          <Text style={localStyles.placeholderText}>This section is currently blank.</Text>
-          <Text style={localStyles.subText}>Ready for your custom requirements!</Text>
+          <FontAwesome name="shopping-basket" size={48} color="#777265" style={{ marginBottom: 16 }} />
+          <Text style={localStyles.placeholderText}>No Orders Received</Text>
+          <Text style={localStyles.subText}>You haven't received any orders yet.</Text>
         </View>
       </SafeAreaView>
     </View>
