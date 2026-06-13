@@ -1,6 +1,6 @@
 import { FontAwesome } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Animated, Platform, Pressable, StyleSheet, View } from "react-native";
 import { OrdersProvider } from "../../context/OrdersContext";
 
@@ -71,7 +71,7 @@ export default function MainLayout() {
 }
 
 function TabItem({ isFocused, iconName, onPress }) {
-  const animatedValue = useRef(new Animated.Value(isFocused ? 1 : 0)).current;
+  const [animatedValue] = useState(() => new Animated.Value(isFocused ? 1 : 0));
 
   useEffect(() => {
     Animated.spring(animatedValue, {

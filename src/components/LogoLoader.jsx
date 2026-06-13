@@ -1,11 +1,11 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { Animated, Easing, Image, Platform, StyleSheet, Text, View } from "react-native";
 
 export default function LogoLoader({
   title = "Wait for a Second...",
   subtitle = "Everything is getting ready for you",
 }) {
-  const spinValue = useRef(new Animated.Value(0)).current;
+  const [spinValue] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     Animated.loop(
