@@ -10,7 +10,7 @@ import LogoLoader from "../../../components/LogoLoader";
 import { styles } from "../../../styles/main.styles";
 
 const getApiUrl = () => {
-  return "https://restuarebntbackendcode.onrender.com";
+  return "https://restuarentbackend.onrender.com";
 };
 
 const API_URL = getApiUrl();

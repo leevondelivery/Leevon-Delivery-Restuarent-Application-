@@ -6,7 +6,7 @@ import Constants from "expo-constants";
 const OrdersContext = createContext(null);
 
 const getApiUrl = () => {
-  return "https://restuarebntbackendcode.onrender.com";
+  return "https://restuarentbackend.onrender.com";
 };
 
 const API_URL = getApiUrl();
@@ -45,8 +45,10 @@ export function OrdersProvider({ children }) {
         throw new Error(data.message || "Failed to fetch orders from server");
       }
     } catch (err) {
-      console.error("Error fetching accepted orders globally:", err);
-      if (!isPolling) {
+      if (isPolling) {
+        console.log("Polling error (silent):", err.message);
+      } else {
+        console.log("Error fetching accepted orders globally:", err.message);
         setError(err.message);
       }
     } finally {

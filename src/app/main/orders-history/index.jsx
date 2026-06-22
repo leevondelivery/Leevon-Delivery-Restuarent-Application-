@@ -24,7 +24,7 @@ import LogoLoader from "../../../components/LogoLoader";
 const isMobile = Platform.OS === "ios" || Platform.OS === "android";
 
 const getApiUrl = () => {
-  return "https://restuarebntbackendcode.onrender.com";
+  return "https://restuarentbackend.onrender.com";
 };
 
 const API_URL = getApiUrl();
