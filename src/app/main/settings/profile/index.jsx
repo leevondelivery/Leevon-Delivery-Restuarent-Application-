@@ -70,18 +70,18 @@ export default function RestaurantProfilePage() {
   return (
     <View style={styles.mainContainer}>
       <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-        {/* Header Pill with Back Button */}
-        <View style={globalStyles.headerContainer}>
-          <Pressable onPress={() => router.push("/main/settings")} style={globalStyles.headerPillLeftButton}>
-            <FontAwesome name="chevron-left" size={16} color="#777265" />
-          </Pressable>
-          <View style={globalStyles.headerPill}>
-            <FontAwesome name="user" size={18} color="#777265" style={globalStyles.headerPillIcon} />
-            <Text style={globalStyles.headerPillText}>Restaurant Profile</Text>
-          </View>
-        </View>
-
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Header Pill with Back Button */}
+          <View style={globalStyles.headerContainer}>
+            <Pressable onPress={() => router.push("/main/settings")} style={globalStyles.headerPillLeftButton}>
+              <FontAwesome name="chevron-left" size={16} color="#777265" />
+            </Pressable>
+            <View style={globalStyles.headerPill}>
+              <FontAwesome name="user" size={18} color="#777265" style={globalStyles.headerPillIcon} />
+              <Text style={globalStyles.headerPillText}>Restaurant Profile</Text>
+            </View>
+          </View>
+
           {/* Main Info Card */}
           <View style={styles.profileCard}>
             <View style={styles.avatarCircle}>

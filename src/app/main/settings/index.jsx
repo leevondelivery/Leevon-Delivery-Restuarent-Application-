@@ -90,15 +90,15 @@ export default function SettingsPage() {
   return (
     <View style={styles.mainContainer}>
       <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-        {/* Centered Page Header Pill (No ribbon) */}
-        <View style={styles.headerContainer}>
-          <View style={styles.headerPill}>
-            <FontAwesome name="cog" size={18} color="#777265" style={styles.headerPillIcon} />
-            <Text style={styles.headerPillText}>Settings</Text>
-          </View>
-        </View>
-
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Centered Page Header Pill (No ribbon) */}
+          <View style={styles.headerContainer}>
+            <View style={styles.headerPill}>
+              <FontAwesome name="cog" size={18} color="#777265" style={styles.headerPillIcon} />
+              <Text style={styles.headerPillText}>Settings</Text>
+            </View>
+          </View>
+
           {/* Upper Profile Details Card */}
           <View style={styles.profileCard}>
             <View style={styles.avatarCircle}>
@@ -146,7 +146,8 @@ export default function SettingsPage() {
             </Pressable>
 
             {/* My Reviews */}
-            {/* <Pressable
+            <Pressable
+              onPress={() => router.push("/main/settings/reviews")}
               style={({ pressed }) => [
                 styles.actionItem,
                 pressed && { opacity: 0.95, transform: [{ scale: 0.99 }] }
@@ -157,7 +158,7 @@ export default function SettingsPage() {
                 <Text style={styles.actionText}>My Reviews</Text>
               </View>
               <FontAwesome name="chevron-right" size={17} color="#1E1E1D" />
-            </Pressable> */}
+            </Pressable>
 
             {/* Contact Us */}
             <Pressable

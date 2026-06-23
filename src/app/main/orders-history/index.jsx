@@ -526,49 +526,52 @@ export default function OrdersPage() {
   return (
     <View style={globalStyles.mainContainer}>
       <SafeAreaView style={globalStyles.safeArea} edges={["top", "left", "right"]}>
-        {/* Header with Back Button */}
-        <View style={globalStyles.headerContainer}>
-          <Pressable
-            onPress={() => router.push("/main/settings")}
-            style={({ pressed }) => [
-              globalStyles.headerPillLeftButton,
-              pressed && { opacity: 0.8 },
-            ]}
-          >
-            <FontAwesome name="chevron-left" size={16} color="#1E1E1D" />
-          </Pressable>
+        {/* Orders FlatList with Sticky Header turned into Scrolling ListHeaderComponent */}
+        <FlatList
+          ListHeaderComponent={
+            <View style={[globalStyles.headerContainer, { alignSelf: "center", marginBottom: 8 }]}>
+              <Pressable
+                onPress={() => router.push("/main/settings")}
+                style={({ pressed }) => [
+                  globalStyles.headerPillLeftButton,
+                  pressed && { opacity: 0.8 },
+                ]}
+              >
+                <FontAwesome name="chevron-left" size={16} color="#1E1E1D" />
+              </Pressable>
 
-          <View style={globalStyles.headerPill}>
-            <FontAwesome name="clipboard" size={18} color="#777265" style={globalStyles.headerPillIcon} />
-            <Text style={globalStyles.headerPillText}>My Orders</Text>
-          </View>
-        </View>
-
-        {/* Error or FlatList */}
-        {error ? (
-          <View style={localStyles.centerContainer}>
-            <FontAwesome name="exclamation-triangle" size={48} color="#E05638" />
-            <Text style={localStyles.errorText}>{error}</Text>
-            <Pressable onPress={() => fetchOrders()} style={localStyles.retryButton}>
-              <Text style={localStyles.retryText}>Retry</Text>
-            </Pressable>
-          </View>
-        ) : (
-          <FlatList
-            data={orders}
-            renderItem={renderOrderItem}
-            keyExtractor={(item) => item._id || item.orderId}
-            contentContainerStyle={localStyles.listContent}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={() => fetchOrders(true)}
-                colors={["#E05638"]}
-                tintColor="#E05638"
-              />
-            }
-            ListEmptyComponent={
+              <View style={globalStyles.headerPill}>
+                <FontAwesome name="clipboard" size={18} color="#777265" style={globalStyles.headerPillIcon} />
+                <Text style={globalStyles.headerPillText}>My Orders</Text>
+              </View>
+            </View>
+          }
+          data={error ? [] : orders}
+          renderItem={renderOrderItem}
+          keyExtractor={(item) => item._id || item.orderId}
+          contentContainerStyle={[
+            localStyles.listContent,
+            (orders.length === 0 || error) && { flexGrow: 1, justifyContent: "center" }
+          ]}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => fetchOrders(true)}
+              colors={["#E05638"]}
+              tintColor="#E05638"
+            />
+          }
+          ListEmptyComponent={
+            error ? (
+              <View style={localStyles.centerContainer}>
+                <FontAwesome name="exclamation-triangle" size={48} color="#E05638" />
+                <Text style={localStyles.errorText}>{error}</Text>
+                <Pressable onPress={() => fetchOrders()} style={localStyles.retryButton}>
+                  <Text style={localStyles.retryText}>Retry</Text>
+                </Pressable>
+              </View>
+            ) : (
               <View style={localStyles.emptyContainer}>
                 <FontAwesome name="calendar-times-o" size={60} color="#777265" />
                 <Text style={localStyles.emptyTitle}>No Orders Yet</Text>
@@ -579,9 +582,9 @@ export default function OrdersPage() {
                   <Text style={localStyles.retryText}>Refresh</Text>
                 </Pressable>
               </View>
-            }
-          />
-        )}
+            )
+          }
+        />
       </SafeAreaView>
 
       {/* Receipt Modal Popup */}

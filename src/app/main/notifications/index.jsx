@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import {
   Alert,
   FlatList,
+  Modal,
   Platform,
   Pressable,
   RefreshControl,
@@ -77,11 +78,14 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [rejectingOrderId, setRejectingOrderId] = useState(null);
+  const [processingOrderId, setProcessingOrderId] = useState(null);
+  const [processingType, setProcessingType] = useState(null);
 
-  const fetchIncomingOrders = useCallback(async (showPullIndicator = false) => {
+  const fetchIncomingOrders = useCallback(async (showPullIndicator = false, isSilent = false) => {
     if (showPullIndicator) {
       setRefreshing(true);
-    } else {
+    } else if (!isSilent) {
       setLoading(true);
     }
     setError(null);
@@ -132,17 +136,14 @@ export default function NotificationsPage() {
   }, []);
 
   const handleReject = async (orderId) => {
+    setProcessingOrderId(orderId);
+    setProcessingType("reject");
     try {
       const storedRestId = await AsyncStorage.getItem("restId");
       
       // If we are logged in as the demo account, or if there is no restaurant ID, simulate reject client-side
       if (!storedRestId || storedRestId === "demo_rest_101") {
         setOrders((prev) => prev.filter((o) => o.orderId !== orderId));
-        if (Platform.OS === "web") {
-          alert("Success\n\nOrder rejected successfully (Demo Mode)");
-        } else {
-          Alert.alert("Success", "Order rejected successfully (Demo Mode)");
-        }
         return;
       }
 
@@ -159,45 +160,31 @@ export default function NotificationsPage() {
       if (res.ok && data.success) {
         // Remove the rejected order from local state list
         setOrders((prev) => prev.filter((o) => o.orderId !== orderId));
-        if (Platform.OS === "web") {
-          alert("Success\n\nOrder rejected successfully");
-        } else {
-          Alert.alert("Success", "Order rejected successfully");
-        }
       } else {
         // If the endpoint is not on the remote server yet, still allow it to remove from screen (fallback simulation)
         console.log(`Server returned failure for reject-order: ${data.message || "Unknown error"}. Simulating rejection client-side.`);
         setOrders((prev) => prev.filter((o) => o.orderId !== orderId));
-        if (Platform.OS === "web") {
-          alert("Success\n\nOrder rejected successfully (Local fallback)");
-        } else {
-          Alert.alert("Success", "Order rejected successfully (Local fallback)");
-        }
       }
     } catch (err) {
       console.log("Error rejecting order:", err.message);
       // Fallback rejection simulation if network error occurs
       setOrders((prev) => prev.filter((o) => o.orderId !== orderId));
-      if (Platform.OS === "web") {
-        alert("Success\n\nOrder rejected successfully (Local fallback)");
-      } else {
-        Alert.alert("Success", "Order rejected successfully (Local fallback)");
-      }
+    } finally {
+      setProcessingOrderId(null);
+      setProcessingType(null);
     }
   };
 
   const handleAccept = async (order) => {
+    const processingId = order._id || order.orderId;
+    setProcessingOrderId(processingId);
+    setProcessingType("accept");
     try {
       const storedRestId = await AsyncStorage.getItem("restId");
       
       // If we are logged in as the demo account, or if there is no restaurant ID, simulate accept client-side
       if (!storedRestId || storedRestId === "demo_rest_101") {
         setOrders((prev) => prev.filter((o) => o.orderId !== order.orderId));
-        if (Platform.OS === "web") {
-          alert("Success\n\nOrder Accepted - The order has been successfully accepted. (Demo Mode)");
-        } else {
-          Alert.alert("Success", "Order Accepted - The order has been successfully accepted. (Demo Mode)");
-        }
         return;
       }
 
@@ -228,35 +215,32 @@ export default function NotificationsPage() {
       if (res.ok && data.success) {
         // Remove accepted order from local state list
         setOrders((prev) => prev.filter((o) => o._id !== order._id));
-        if (Platform.OS === "web") {
-          alert("Success\n\nOrder Accepted - The order has been successfully accepted.");
-        } else {
-          Alert.alert("Success", "Order Accepted - The order has been successfully accepted.");
-        }
       } else {
         // Fallback simulation if Render endpoint is not reachable yet
         console.log(`Server returned failure for accept-order: ${data.message || "Unknown error"}. Simulating acceptance client-side.`);
         setOrders((prev) => prev.filter((o) => o._id !== order._id));
-        if (Platform.OS === "web") {
-          alert("Success\n\nOrder Accepted - The order has been successfully accepted. (Local fallback)");
-        } else {
-          Alert.alert("Success", "Order Accepted - The order has been successfully accepted. (Local fallback)");
-        }
       }
     } catch (err) {
       console.log("Error accepting order:", err.message);
       // Fallback simulation
       setOrders((prev) => prev.filter((o) => o._id !== order._id));
-      if (Platform.OS === "web") {
-        alert("Success\n\nOrder Accepted - The order has been successfully accepted. (Local fallback)");
-      } else {
-        Alert.alert("Success", "Order Accepted - The order has been successfully accepted. (Local fallback)");
-      }
+    } finally {
+      setProcessingOrderId(null);
+      setProcessingType(null);
     }
   };
 
   useEffect(() => {
+    // Fetch initially
     fetchIncomingOrders();
+
+    // Poll every 5 seconds silently in the background
+    const intervalId = setInterval(() => {
+      fetchIncomingOrders(false, true);
+    }, 5000);
+
+    // Clean up interval on unmount
+    return () => clearInterval(intervalId);
   }, [fetchIncomingOrders]);
 
   const formatOrderDate = (dateStr) => {
@@ -378,7 +362,7 @@ export default function NotificationsPage() {
             </Pressable>
 
             <Pressable
-              onPress={() => handleReject(item.orderId)}
+              onPress={() => setRejectingOrderId(item.orderId)}
               style={({ pressed }) => [
                 localStyles.actionButton,
                 localStyles.rejectButton,
@@ -393,10 +377,19 @@ export default function NotificationsPage() {
     );
   };
 
-  if (loading && !refreshing) {
+  if ((loading || processingOrderId !== null) && !refreshing) {
     return (
       <View style={[globalStyles.mainContainer, { justifyContent: "center", alignItems: "center" }]}>
-        <LogoLoader title="Checking for alerts..." subtitle="Please wait a second" />
+        <LogoLoader
+          title={
+            processingType === "accept"
+              ? "Accepting order..."
+              : processingType === "reject"
+              ? "Rejecting order..."
+              : "Checking for alerts..."
+          }
+          subtitle="Please wait a second"
+        />
       </View>
     );
   }
@@ -404,16 +397,16 @@ export default function NotificationsPage() {
   return (
     <View style={globalStyles.mainContainer}>
       <SafeAreaView style={globalStyles.safeArea} edges={["top", "left", "right"]}>
-        {/* Header */}
-        <View style={globalStyles.headerContainer}>
-          <View style={globalStyles.headerPill}>
-            <FontAwesome name="bell" size={18} color="#777265" style={globalStyles.headerPillIcon} />
-            <Text style={globalStyles.headerPillText}>Alerts</Text>
-          </View>
-        </View>
-
         {/* Orders FlatList */}
         <FlatList
+          ListHeaderComponent={
+            <View style={[globalStyles.headerContainer, { alignSelf: "center", marginBottom: 8 }]}>
+              <View style={globalStyles.headerPill}>
+                <FontAwesome name="bell" size={18} color="#777265" style={globalStyles.headerPillIcon} />
+                <Text style={globalStyles.headerPillText}>Alerts</Text>
+              </View>
+            </View>
+          }
           data={orders}
           renderItem={renderOrderItem}
           keyExtractor={(item) => item._id || item.orderId}
@@ -441,6 +434,46 @@ export default function NotificationsPage() {
           }
         />
       </SafeAreaView>
+
+      {/* Reject Order Confirmation Modal */}
+      <Modal
+        visible={rejectingOrderId !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setRejectingOrderId(null)}
+      >
+        <View style={localStyles.modalOverlay}>
+          <View style={localStyles.confirmCard}>
+            {/* Red Circle with warning icon */}
+            <View style={localStyles.iconContainer}>
+              <FontAwesome name="exclamation-triangle" size={36} color="#FFFFFF" />
+            </View>
+
+            {/* Modal Title */}
+            <Text style={localStyles.confirmTitle}>Are you sure you want to reject this order?</Text>
+
+            {/* Confirm Reject Button */}
+            <Pressable
+              onPress={() => {
+                const orderIdToReject = rejectingOrderId;
+                setRejectingOrderId(null);
+                handleReject(orderIdToReject);
+              }}
+              style={({ pressed }) => [
+                localStyles.confirmButton,
+                pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] }
+              ]}
+            >
+              <Text style={localStyles.confirmButtonText}>Reject</Text>
+            </Pressable>
+
+            {/* Cancel Link */}
+            <Pressable onPress={() => setRejectingOrderId(null)}>
+              <Text style={localStyles.cancelTextLink}>Not now</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -693,5 +726,94 @@ const localStyles = StyleSheet.create({
     color: "#777265",
     textAlign: "center",
     fontWeight: "500",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.4)", // dimmed background overlay
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  confirmCard: {
+    width: "85%",
+    maxWidth: 320,
+    backgroundColor: "#FAF6EC", // warm beige/cream dialog container
+    borderRadius: 36,
+    padding: 24,
+    alignItems: "center",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.1,
+        shadowRadius: 20,
+      },
+      android: {
+        elevation: 8,
+      },
+      web: {
+        boxShadow: "0 10px 30px rgba(0, 0, 0, 0.1)",
+      },
+    }),
+  },
+  iconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#E05638", // brand red color
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  confirmTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#1E1E1D",
+    textAlign: "center",
+    lineHeight: 28,
+    marginBottom: 24,
+  },
+  confirmButton: {
+    width: "100%",
+    backgroundColor: "#E05638", // matches logout button red
+    height: 52,
+    borderRadius: 26,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: "0 4px 10px rgba(224, 86, 56, 0.2)",
+        cursor: "pointer",
+        userSelect: "none",
+      },
+    }),
+  },
+  confirmButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  cancelTextLink: {
+    color: "#1E1E1D",
+    fontSize: 15,
+    fontWeight: "800",
+    textDecorationLine: "underline",
+    paddingVertical: 8,
+    ...Platform.select({
+      web: {
+        cursor: "pointer",
+        userSelect: "none",
+      },
+    }),
   },
 });

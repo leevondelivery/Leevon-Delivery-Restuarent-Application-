@@ -434,42 +434,42 @@ export default function AcceptedOrdersPage() {
   return (
     <View style={globalStyles.mainContainer}>
       <SafeAreaView style={globalStyles.safeArea} edges={["top", "left", "right"]}>
-        {/* Top Header Pill for "Accepted Orders" */}
-        <View style={localStyles.topHeaderContainer}>
-          <View style={localStyles.acceptedHeaderPill}>
-            <FontAwesome name="check-circle" size={16} color="#0E8A5F" style={{ marginRight: 8 }} />
-            <Text style={localStyles.acceptedHeaderPillText}>Accepted Orders</Text>
-          </View>
-        </View>
-
-        {/* Errors / List */}
-        {error ? (
-          <View style={localStyles.centerContainer}>
-            <FontAwesome name="exclamation-triangle" size={48} color="#E05638" />
-            <Text style={localStyles.errorText}>{error}</Text>
-            <Pressable onPress={() => refetch()} style={localStyles.retryButton}>
-              <Text style={localStyles.retryText}>Retry</Text>
-            </Pressable>
-          </View>
-        ) : (
-          <FlatList
-            data={orders}
-            renderItem={renderOrderItem}
-            keyExtractor={(item) => item._id || item.orderId}
-            contentContainerStyle={[
-              localStyles.listContent,
-              orders.length === 0 && { flexGrow: 1, justifyContent: "center" }
-            ]}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                colors={["#0E8A5F"]}
-                tintColor="#0E8A5F"
-              />
-            }
-            ListEmptyComponent={
+        {/* Orders FlatList with Sticky Header turned into Scrolling ListHeaderComponent */}
+        <FlatList
+          ListHeaderComponent={
+            <View style={[localStyles.topHeaderContainer, { alignSelf: "center", marginBottom: 8 }]}>
+              <View style={localStyles.acceptedHeaderPill}>
+                <FontAwesome name="check-circle" size={16} color="#0E8A5F" style={{ marginRight: 8 }} />
+                <Text style={localStyles.acceptedHeaderPillText}>Accepted Orders</Text>
+              </View>
+            </View>
+          }
+          data={error ? [] : orders}
+          renderItem={renderOrderItem}
+          keyExtractor={(item) => item._id || item.orderId}
+          contentContainerStyle={[
+            localStyles.listContent,
+            (orders.length === 0 || error) && { flexGrow: 1, justifyContent: "center" }
+          ]}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#0E8A5F"]}
+              tintColor="#0E8A5F"
+            />
+          }
+          ListEmptyComponent={
+            error ? (
+              <View style={localStyles.centerContainer}>
+                <FontAwesome name="exclamation-triangle" size={48} color="#E05638" />
+                <Text style={localStyles.errorText}>{error}</Text>
+                <Pressable onPress={() => refetch()} style={localStyles.retryButton}>
+                  <Text style={localStyles.retryText}>Retry</Text>
+                </Pressable>
+              </View>
+            ) : (
               <View style={localStyles.emptyContainer}>
                 <FontAwesome name="check-square-o" size={60} color="#777265" />
                 <Text style={localStyles.emptyTitle}>No Accepted Orders</Text>
@@ -480,9 +480,9 @@ export default function AcceptedOrdersPage() {
                   <Text style={localStyles.retryText}>Refresh</Text>
                 </Pressable>
               </View>
-            }
-          />
-        )}
+            )
+          }
+        />
       </SafeAreaView>
 
       {/* Receipt Modal Popup */}

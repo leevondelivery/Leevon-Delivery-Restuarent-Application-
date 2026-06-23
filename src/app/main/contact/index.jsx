@@ -1,6 +1,6 @@
 import { FontAwesome } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Linking, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { styles as globalStyles } from "../../../styles/main.styles";
@@ -40,28 +40,29 @@ export default function ContactUsPage() {
   return (
     <View style={globalStyles.mainContainer}>
       <SafeAreaView style={globalStyles.safeArea} edges={["top", "left", "right"]}>
-        {/* Header Section */}
-        <View style={globalStyles.headerContainer}>
-          {/* Circular Back Button on Left */}
-          <Pressable
-            onPress={() => router.push("/main/settings")}
-            style={({ pressed }) => [
-              globalStyles.headerPillLeftButton,
-              pressed && { opacity: 0.8 },
-            ]}
-          >
-            <FontAwesome name="chevron-left" size={16} color="#1E1E1D" />
-          </Pressable>
+        <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+          {/* Header Section */}
+          <View style={globalStyles.headerContainer}>
+            {/* Circular Back Button on Left */}
+            <Pressable
+              onPress={() => router.push("/main/settings")}
+              style={({ pressed }) => [
+                globalStyles.headerPillLeftButton,
+                pressed && { opacity: 0.8 },
+              ]}
+            >
+              <FontAwesome name="chevron-left" size={16} color="#1E1E1D" />
+            </Pressable>
 
-          {/* Centered Capsule Header Pill */}
-          <View style={globalStyles.headerPill}>
-            <FontAwesome name="envelope" size={18} color="#777265" style={globalStyles.headerPillIcon} />
-            <Text style={globalStyles.headerPillText}>Contact Us</Text>
+            {/* Centered Capsule Header Pill */}
+            <View style={globalStyles.headerPill}>
+              <FontAwesome name="envelope" size={18} color="#777265" style={globalStyles.headerPillIcon} />
+              <Text style={globalStyles.headerPillText}>Contact Us</Text>
+            </View>
           </View>
-        </View>
 
-        {/* Content Area */}
-        <View style={localStyles.contentContainer}>
+          {/* Content Area */}
+          <View style={localStyles.contentContainer}>
           {/* Card Container matching settings and stats styling */}
           <View style={localStyles.contactCard}>
             
@@ -137,6 +138,7 @@ export default function ContactUsPage() {
 
           </View>
         </View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
