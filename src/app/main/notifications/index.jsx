@@ -1,6 +1,6 @@
 import { FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   Alert,
   FlatList,
@@ -13,7 +13,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useAudioPlayer } from "expo-audio";
+import { useAudioPlayer, setAudioModeAsync } from "expo-audio";
 
 import { styles as globalStyles } from "../../../styles/main.styles";
 import LogoLoader from "../../../components/LogoLoader";
@@ -82,56 +82,127 @@ export default function NotificationsPage() {
   const [orders, setOrders] = useState([]);
   const player = useAudioPlayer(orderSound);
 
-  // Set up repeating sound logic (waits 10 seconds after completely playing before repeating)
+  // Refs for tracking playback/delay state and order counts
+  const ordersCountRef = useRef(0);
+  const isWaitingRef = useRef(false);
+  const timeoutIdRef = useRef(null);
+  const lastOrdersCountRef = useRef(0);
+
+  // Configure global audio settings for mobile (silent mode bypass, background playing, focus)
+  useEffect(() => {
+    async function configureAudio() {
+      try {
+        await setAudioModeAsync({
+          playsInSilentMode: true,
+          interruptionMode: "doNotMix",
+          shouldPlayInBackground: true,
+        });
+        console.log("Global audio mode configured successfully for mobile.");
+      } catch (err) {
+        console.log("Error setting global audio mode:", err.message);
+      }
+    }
+    configureAudio();
+  }, []);
+
+  const triggerPlay = useCallback(() => {
+    if (timeoutIdRef.current) {
+      clearTimeout(timeoutIdRef.current);
+      timeoutIdRef.current = null;
+    }
+    isWaitingRef.current = false;
+
+    if (ordersCountRef.current > 0 && player) {
+      try {
+        player.seekTo(0);
+      } catch (err) {
+        console.log("Error seeking audio on play:", err.message);
+      }
+      player.play();
+    }
+  }, [player]);
+
+  const stopSoundAndScheduleRetry = useCallback(() => {
+    if (player) {
+      player.pause();
+    }
+    isWaitingRef.current = true;
+    if (timeoutIdRef.current) {
+      clearTimeout(timeoutIdRef.current);
+    }
+    timeoutIdRef.current = setTimeout(() => {
+      isWaitingRef.current = false;
+      if (ordersCountRef.current > 0) {
+        triggerPlay();
+      }
+    }, 10000);
+  }, [player, triggerPlay]);
+
+  // Listener for playback status updates from native player (completion & loaded triggers)
   useEffect(() => {
     if (!player) return;
 
-    let timeoutId = null;
-    let subscription = null;
+    const subscription = player.addListener("playbackStatusUpdate", (eventStatus) => {
+      if (!eventStatus) return;
 
-    const playAudio = () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
-      }
-      player.seekTo(0);
-      player.play();
-    };
-
-    if (orders.length > 0) {
-      // 1. Play immediately when orders are found
-      playAudio();
-
-      // 2. Add listener to wait for completion
-      subscription = player.addListener("playbackStatusUpdate", (status) => {
-        if (status && status.didJustFinish) {
-          console.log("Audio finished playing. Setting 10-second timeout before playing again.");
-          
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
-          
-          // Wait 10 seconds after audio completely plays
-          timeoutId = setTimeout(() => {
-            if (orders.length > 0) {
-              playAudio();
-            }
-          }, 10000);
+      // Handle when audio finishes playing completely
+      if (eventStatus.didJustFinish) {
+        console.log("Audio finished playing completely. Delaying next repeat by 10s.");
+        isWaitingRef.current = true;
+        if (timeoutIdRef.current) {
+          clearTimeout(timeoutIdRef.current);
         }
-      });
-    } else {
-      player.pause();
-    }
+        timeoutIdRef.current = setTimeout(() => {
+          isWaitingRef.current = false;
+          if (ordersCountRef.current > 0) {
+            triggerPlay();
+          }
+        }, 10000);
+        return;
+      }
+
+      // Self-correcting trigger: if audio just loaded and should be playing but is not:
+      if (eventStatus.isLoaded && !eventStatus.playing && !isWaitingRef.current && ordersCountRef.current > 0) {
+        console.log("Audio loaded/buffered. Triggering play on mobile.");
+        player.play();
+      }
+    });
 
     return () => {
-      if (subscription) {
-        subscription.remove();
+      subscription.remove();
+    };
+  }, [player, triggerPlay]);
+
+  // Track order count changes (new orders immediately play, 0 orders resets/pauses player)
+  useEffect(() => {
+    const prevCount = lastOrdersCountRef.current;
+    ordersCountRef.current = orders.length;
+    lastOrdersCountRef.current = orders.length;
+
+    if (orders.length > prevCount) {
+      console.log("New incoming order detected. Playing notification sound immediately.");
+      triggerPlay();
+    } else if (orders.length === 0) {
+      console.log("No pending orders. Silencing notification sound.");
+      if (player) {
+        player.pause();
       }
-      if (timeoutId) {
-        clearTimeout(timeoutId);
+      isWaitingRef.current = false;
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+        timeoutIdRef.current = null;
+      }
+    }
+  }, [orders.length, player, triggerPlay]);
+
+  // Clear timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
       }
     };
-  }, [orders.length, player]);
+  }, []);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
@@ -201,9 +272,7 @@ export default function NotificationsPage() {
   const handleReject = async (orderId) => {
     setProcessingOrderId(orderId);
     setProcessingType("reject");
-    if (player) {
-      player.pause();
-    }
+    stopSoundAndScheduleRetry();
     try {
       const storedRestId = await AsyncStorage.getItem("restId");
       
@@ -250,9 +319,7 @@ export default function NotificationsPage() {
     const processingId = order._id || order.orderId;
     setProcessingOrderId(processingId);
     setProcessingType("accept");
-    if (player) {
-      player.pause();
-    }
+    stopSoundAndScheduleRetry();
     try {
       const storedRestId = await AsyncStorage.getItem("restId");
       
@@ -441,7 +508,10 @@ export default function NotificationsPage() {
             </Pressable>
 
             <Pressable
-              onPress={() => setRejectingOrderId(item.orderId)}
+              onPress={() => {
+                stopSoundAndScheduleRetry();
+                setRejectingOrderId(item.orderId);
+              }}
               style={({ pressed }) => [
                 localStyles.actionButton,
                 localStyles.rejectButton,
