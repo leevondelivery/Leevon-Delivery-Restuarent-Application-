@@ -15,6 +15,7 @@ export default function SettingsPage() {
   const [phone, setPhone] = useState("9636");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -57,15 +58,7 @@ export default function SettingsPage() {
   };
 
   const handleDeleteAccount = () => {
-    if (Platform.OS === "web") {
-      alert("Delete Account Request\n\nTo delete your account and associated data, please email support@leevondelivery.in. Your data will be deleted within 30 days.");
-    } else {
-      Alert.alert(
-        "Delete Account Request",
-        "To delete your account and associated data, please email support@leevondelivery.in.\n\nYour account and data will be permanently deleted within 30 days.",
-        [{ text: "OK" }]
-      );
-    }
+    setShowDeleteConfirm(true);
   };
 
   const handleOpenPrivacyPolicy = () => {
@@ -156,6 +149,21 @@ export default function SettingsPage() {
               <View style={styles.actionLeftRow}>
                 <FontAwesome name="star" size={22} color="#1E1E1D" style={styles.actionIcon} />
                 <Text style={styles.actionText}>My Reviews</Text>
+              </View>
+              <FontAwesome name="chevron-right" size={17} color="#1E1E1D" />
+            </Pressable>
+
+            {/* Rejected Orders */}
+            <Pressable
+              onPress={() => router.push("/main/settings/rejected-orders")}
+              style={({ pressed }) => [
+                styles.actionItem,
+                pressed && { opacity: 0.95, transform: [{ scale: 0.99 }] }
+              ]}
+            >
+              <View style={styles.actionLeftRow}>
+                <FontAwesome name="ban" size={20} color="#1E1E1D" style={styles.actionIcon} />
+                <Text style={styles.actionText}>Rejected Orders</Text>
               </View>
               <FontAwesome name="chevron-right" size={17} color="#1E1E1D" />
             </Pressable>
@@ -273,6 +281,52 @@ export default function SettingsPage() {
             {/* Cancel Link */}
             <Pressable onPress={() => setShowLogoutConfirm(false)}>
               <Text style={styles.cancelTextLink}>Not now</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Delete Account Confirmation Modal */}
+      <Modal
+        visible={showDeleteConfirm}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDeleteConfirm(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.confirmCard, { position: "relative", padding: 24, paddingTop: 44 }]}>
+            {/* Close Button 'X' */}
+            <Pressable
+              onPress={() => setShowDeleteConfirm(false)}
+              style={styles.modalCloseButton}
+            >
+              <FontAwesome name="times" size={16} color="#777265" />
+            </Pressable>
+
+            {/* Trash icon circle */}
+            <View style={[styles.iconContainer, { backgroundColor: "#E05638" }]}>
+              <FontAwesome name="trash" size={36} color="#FFFFFF" />
+            </View>
+
+            {/* Modal Title */}
+            <Text style={styles.confirmTitle}>Delete Account Request</Text>
+
+            {/* Modal Body */}
+            <Text style={styles.deleteConfirmText}>
+              To delete your account and associated data, please email{" "}
+              <Text style={{ fontWeight: "bold" }}>support@leevondelivery.in</Text>.{"\n\n"}
+              Your account and data will be permanently deleted within 30 days.
+            </Text>
+
+            {/* Close / Action Button */}
+            <Pressable
+              onPress={() => setShowDeleteConfirm(false)}
+              style={({ pressed }) => [
+                styles.confirmButton,
+                pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] }
+              ]}
+            >
+              <Text style={styles.confirmButtonText}>Got it</Text>
             </Pressable>
           </View>
         </View>
@@ -680,6 +734,21 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     padding: 4,
+  },
+  modalCloseButton: {
+    position: "absolute",
+    right: 16,
+    top: 16,
+    padding: 8,
+    zIndex: 10,
+  },
+  deleteConfirmText: {
+    fontSize: 14,
+    color: "#4A4945",
+    lineHeight: 20,
+    textAlign: "center",
+    marginBottom: 24,
+    fontWeight: "600",
   },
   termsScroll: {
     flex: 1,

@@ -13,6 +13,7 @@ const API_URL = getApiUrl();
 
 export function OrdersProvider({ children }) {
   const [orders, setOrders] = useState([]);
+  const [incomingCount, setIncomingCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -26,6 +27,7 @@ export function OrdersProvider({ children }) {
 
       if (storedRestId === "demo_rest_101") {
         setOrders([]);
+        setIncomingCount(1); // Demo mock order
         setError(null);
         setLoading(false);
         return;
@@ -43,6 +45,19 @@ export function OrdersProvider({ children }) {
         setError(null);
       } else {
         throw new Error(data.message || "Failed to fetch orders from server");
+      }
+
+      // Fetch incoming orders count
+      try {
+        const incomingRes = await fetch(`${API_URL}/incoming-orders/${storedRestId}`);
+        if (incomingRes.ok) {
+          const incomingData = await incomingRes.json();
+          if (incomingData.success) {
+            setIncomingCount(incomingData.orders?.length || 0);
+          }
+        }
+      } catch (incomingErr) {
+        console.log("Global polling error fetching incoming orders count:", incomingErr.message);
       }
     } catch (err) {
       if (isPolling) {
@@ -69,7 +84,7 @@ export function OrdersProvider({ children }) {
   }, [fetchOrders]);
 
   return (
-    <OrdersContext.Provider value={{ orders, loading, error, refetch: () => fetchOrders(false) }}>
+    <OrdersContext.Provider value={{ orders, incomingCount, setIncomingCount, loading, error, refetch: () => fetchOrders(false) }}>
       {children}
     </OrdersContext.Provider>
   );

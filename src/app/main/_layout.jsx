@@ -2,7 +2,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { useEffect, useState } from "react";
 import { Animated, Platform, Pressable, StyleSheet, View } from "react-native";
-import { OrdersProvider } from "../../context/OrdersContext";
+import { OrdersProvider, useOrders } from "../../context/OrdersContext";
 
 export default function MainLayout() {
   return (
@@ -30,6 +30,13 @@ export default function MainLayout() {
       {/* Hide the reviews screen from the tabbar list */}
       <Tabs.Screen
         name="settings/reviews/index"
+        options={{
+          href: null,
+        }}
+      />
+      {/* Hide the rejected orders screen from the tabbar list */}
+      <Tabs.Screen
+        name="settings/rejected-orders/index"
         options={{
           href: null,
         }}
@@ -77,7 +84,7 @@ export default function MainLayout() {
   );
 }
 
-function TabItem({ isFocused, iconName, onPress }) {
+function TabItem({ isFocused, iconName, onPress, showBadge }) {
   const [animatedValue] = useState(() => new Animated.Value(isFocused ? 1 : 0));
 
   useEffect(() => {
@@ -127,12 +134,15 @@ function TabItem({ isFocused, iconName, onPress }) {
             color="#000000"
           />
         </Animated.View>
+        {showBadge && <View style={styles.badge} />}
       </Animated.View>
     </Pressable>
   );
 }
 
 function CustomTabBar({ state, descriptors, navigation }) {
+  const { incomingCount } = useOrders();
+
   return (
     <View style={styles.container}>
       <View style={styles.tabBar}>
@@ -142,6 +152,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
             route.name === "index" ||
             route.name === "settings/profile/index" ||
             route.name === "settings/reviews/index" ||
+            route.name === "settings/rejected-orders/index" ||
             route.name === "contact/index" ||
             route.name === "orders-history/index"
           )
@@ -170,12 +181,15 @@ function CustomTabBar({ state, descriptors, navigation }) {
             iconName = "cog";
           }
 
+          const showBadge = route.name.includes("notifications") && incomingCount > 0;
+
           return (
             <TabItem
               key={route.key}
               isFocused={isFocused}
               iconName={iconName}
               onPress={onPress}
+              showBadge={showBadge}
             />
           );
         })}
@@ -238,5 +252,17 @@ const styles = StyleSheet.create({
         cursor: "pointer",
       },
     }),
+  },
+  badge: {
+    position: "absolute",
+    right: 0,
+    top: 0,
+    backgroundColor: "#E05638", // brand red color
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+    zIndex: 10,
   },
 });

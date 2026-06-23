@@ -394,7 +394,7 @@ export const styles = StyleSheet.create({
   },
   headerPillLeftButton: {
     position: "absolute",
-    left: 16,
+    left: 0,
     top: 30,
     width: 40,
     height: 40,

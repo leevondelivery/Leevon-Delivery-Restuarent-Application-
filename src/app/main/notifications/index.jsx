@@ -13,15 +13,19 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAudioPlayer } from "expo-audio";
 
 import { styles as globalStyles } from "../../../styles/main.styles";
 import LogoLoader from "../../../components/LogoLoader";
+import { useOrders } from "../../../context/OrdersContext";
 
 const getApiUrl = () => {
   return "https://restuarentbackend.onrender.com";
 };
 
 const API_URL = getApiUrl();
+
+const orderSound = require("../../../../assets/ordernotification.wav");
 
 const MOCK_ORDER = {
   "_id": "6a391eaecc05a4f188f982db",
@@ -74,7 +78,60 @@ const MOCK_ORDER = {
 };
 
 export default function NotificationsPage() {
+  const { setIncomingCount, refetch: refetchGlobalOrders } = useOrders();
   const [orders, setOrders] = useState([]);
+  const player = useAudioPlayer(orderSound);
+
+  // Set up repeating sound logic (waits 10 seconds after completely playing before repeating)
+  useEffect(() => {
+    if (!player) return;
+
+    let timeoutId = null;
+    let subscription = null;
+
+    const playAudio = () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+      player.seekTo(0);
+      player.play();
+    };
+
+    if (orders.length > 0) {
+      // 1. Play immediately when orders are found
+      playAudio();
+
+      // 2. Add listener to wait for completion
+      subscription = player.addListener("playbackStatusUpdate", (status) => {
+        if (status && status.didJustFinish) {
+          console.log("Audio finished playing. Setting 10-second timeout before playing again.");
+          
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+          
+          // Wait 10 seconds after audio completely plays
+          timeoutId = setTimeout(() => {
+            if (orders.length > 0) {
+              playAudio();
+            }
+          }, 10000);
+        }
+      });
+    } else {
+      player.pause();
+    }
+
+    return () => {
+      if (subscription) {
+        subscription.remove();
+      }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [orders.length, player]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
@@ -97,6 +154,7 @@ export default function NotificationsPage() {
       // If we are logged in as the demo account, or if there is no restaurant ID, load the mock order
       if (!storedRestId || storedRestId === "demo_rest_101") {
         setOrders([MOCK_ORDER]);
+        setIncomingCount(1);
         setLoading(false);
         setRefreshing(false);
         return;
@@ -108,6 +166,7 @@ export default function NotificationsPage() {
       if (!res.ok) {
         console.log(`Incoming orders request returned status ${res.status}. Showing empty list.`);
         setOrders([]);
+        setIncomingCount(0);
         setLoading(false);
         setRefreshing(false);
         return;
@@ -117,33 +176,41 @@ export default function NotificationsPage() {
       if (data.success) {
         // Use the actual orders array from MongoDB (no fallback to mock data for real accounts)
         setOrders(data.orders || []);
+        setIncomingCount(data.orders?.length || 0);
       } else {
         console.log("Failed to fetch orders from server: " + (data.message || "Unknown error"));
         setOrders([]);
+        setIncomingCount(0);
       }
     } catch (err) {
       console.log("Network/fetch error fetching incoming orders:", err.message);
       // Only show mock data if we are on a demo account
       if (!storedRestId || storedRestId === "demo_rest_101") {
         setOrders([MOCK_ORDER]);
+        setIncomingCount(1);
       } else {
         setOrders([]);
+        setIncomingCount(0);
       }
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [setIncomingCount]);
 
   const handleReject = async (orderId) => {
     setProcessingOrderId(orderId);
     setProcessingType("reject");
+    if (player) {
+      player.pause();
+    }
     try {
       const storedRestId = await AsyncStorage.getItem("restId");
       
       // If we are logged in as the demo account, or if there is no restaurant ID, simulate reject client-side
       if (!storedRestId || storedRestId === "demo_rest_101") {
         setOrders((prev) => prev.filter((o) => o.orderId !== orderId));
+        setIncomingCount((prev) => Math.max(0, prev - 1));
         return;
       }
 
@@ -160,15 +227,19 @@ export default function NotificationsPage() {
       if (res.ok && data.success) {
         // Remove the rejected order from local state list
         setOrders((prev) => prev.filter((o) => o.orderId !== orderId));
+        setIncomingCount((prev) => Math.max(0, prev - 1));
+        refetchGlobalOrders();
       } else {
         // If the endpoint is not on the remote server yet, still allow it to remove from screen (fallback simulation)
         console.log(`Server returned failure for reject-order: ${data.message || "Unknown error"}. Simulating rejection client-side.`);
         setOrders((prev) => prev.filter((o) => o.orderId !== orderId));
+        setIncomingCount((prev) => Math.max(0, prev - 1));
       }
     } catch (err) {
       console.log("Error rejecting order:", err.message);
       // Fallback rejection simulation if network error occurs
       setOrders((prev) => prev.filter((o) => o.orderId !== orderId));
+      setIncomingCount((prev) => Math.max(0, prev - 1));
     } finally {
       setProcessingOrderId(null);
       setProcessingType(null);
@@ -179,12 +250,16 @@ export default function NotificationsPage() {
     const processingId = order._id || order.orderId;
     setProcessingOrderId(processingId);
     setProcessingType("accept");
+    if (player) {
+      player.pause();
+    }
     try {
       const storedRestId = await AsyncStorage.getItem("restId");
       
       // If we are logged in as the demo account, or if there is no restaurant ID, simulate accept client-side
       if (!storedRestId || storedRestId === "demo_rest_101") {
         setOrders((prev) => prev.filter((o) => o.orderId !== order.orderId));
+        setIncomingCount((prev) => Math.max(0, prev - 1));
         return;
       }
 
@@ -215,15 +290,19 @@ export default function NotificationsPage() {
       if (res.ok && data.success) {
         // Remove accepted order from local state list
         setOrders((prev) => prev.filter((o) => o._id !== order._id));
+        setIncomingCount((prev) => Math.max(0, prev - 1));
+        refetchGlobalOrders();
       } else {
         // Fallback simulation if Render endpoint is not reachable yet
         console.log(`Server returned failure for accept-order: ${data.message || "Unknown error"}. Simulating acceptance client-side.`);
         setOrders((prev) => prev.filter((o) => o._id !== order._id));
+        setIncomingCount((prev) => Math.max(0, prev - 1));
       }
     } catch (err) {
       console.log("Error accepting order:", err.message);
       // Fallback simulation
       setOrders((prev) => prev.filter((o) => o._id !== order._id));
+      setIncomingCount((prev) => Math.max(0, prev - 1));
     } finally {
       setProcessingOrderId(null);
       setProcessingType(null);

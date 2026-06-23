@@ -36,6 +36,12 @@
             "imageWidth": 76
           }
         }
+      ],
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": true
+        }
       ]
     ],
     "experiments": {

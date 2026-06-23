@@ -1,4 +1,6 @@
-import Constants from "expo-constants";
+import { FontAwesome } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -11,12 +13,9 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { FontAwesome } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router } from "expo-router";
 
-import { styles } from "../styles/index.styles";
 import LogoLoader from "../components/LogoLoader";
+import { styles } from "../styles/index.styles";
 
 const getApiUrl = () => {
   return "https://restuarentbackend.onrender.com";
@@ -137,7 +136,7 @@ export default function Index() {
         const fssai = data.user?.fssai || "N/A";
         const userEmail = data.user?.email || "N/A";
         const userPhone = data.user?.phone || "N/A";
-        
+
         const restaurantLocation = data.user?.restaurantLocation ? JSON.stringify(data.user.restaurantLocation) : "{}";
         const lat = data.user?.restaurantLocation?.lat !== undefined && data.user?.restaurantLocation?.lat !== null ? String(data.user.restaurantLocation.lat) : "N/A";
         const lng = data.user?.restaurantLocation?.lng !== undefined && data.user?.restaurantLocation?.lng !== null ? String(data.user.restaurantLocation.lng) : "N/A";

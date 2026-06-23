@@ -1,9 +1,8 @@
 import { FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Constants from "expo-constants";
 import * as Print from "expo-print";
 import { router } from "expo-router";
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -18,8 +17,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { styles as globalStyles } from "../../../styles/main.styles";
 import LogoLoader from "../../../components/LogoLoader";
+import { styles as globalStyles } from "../../../styles/main.styles";
 
 const isMobile = Platform.OS === "ios" || Platform.OS === "android";
 
@@ -51,29 +50,21 @@ const generateInvoiceHtml = (order, address = "None", fssai = "None") => {
     }
   };
 
-  const originalTotal = order.totalPrice || order.grandTotal || 0;
-  const discountedTotal = originalTotal;
+  const totalAmount = order.totalPrice || order.grandTotal || 0;
 
   const itemRowsHtml = Array.isArray(order.items)
     ? order.items
-        .map((foodItem) => {
-          const originalPrice = foodItem.price || 0;
-          const discountedPrice = originalPrice;
-          return `
-            <tr style="border-bottom: 1px dashed #EADEC2;">
-              <td style="padding: 12px 0; font-weight: bold; font-family: sans-serif; color: #3A3937; font-size: 14px;">
-                ${foodItem.name}
-              </td>
-              <td style="padding: 12px 0; text-align: center; font-family: sans-serif; color: #3A3937; font-size: 14px;">
-                ${foodItem.quantity}
-              </td>
-              <td style="padding: 12px 0; text-align: right; font-family: sans-serif; font-weight: bold; color: #1E1E1D; font-size: 14px;">
-                ₹${discountedPrice.toFixed(2)}
-              </td>
+      .map((foodItem) => {
+        const itemPrice = foodItem.price || 0;
+        return `
+            <tr class="item-row">
+              <td class="col-item">${foodItem.name}</td>
+              <td class="col-qty">${foodItem.quantity}</td>
+              <td class="col-price">₹${itemPrice.toFixed(2)}</td>
             </tr>
           `;
-        })
-        .join("")
+      })
+      .join("")
     : "";
 
   return `
@@ -83,181 +74,113 @@ const generateInvoiceHtml = (order, address = "None", fssai = "None") => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
         <style>
           body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'Courier New', Courier, monospace;
             margin: 0;
-            padding: 15px;
-            background-color: #F7F6F1;
+            padding: 10px;
+            background-color: #ffffff;
+            color: #1e1e1d;
           }
-          .card {
-            background-color: #FAF6EC;
-            border-radius: 24px;
-            padding: 20px;
-            border: 1px solid #E5DEC9;
-            max-width: 480px;
+          .receipt {
+            max-width: 320px;
             margin: 0 auto;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+            padding: 10px;
+            background-color: #ffffff;
           }
-          .header-pill {
-            background-color: #E5DEC9;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 16px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            height: 48px;
-            box-sizing: border-box;
+          .center {
+            text-align: center;
           }
-          .order-id {
+          .title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+          }
+          .meta {
             font-size: 12px;
-            font-weight: 800;
-            color: #1E1E1D;
-            font-family: sans-serif;
-          }
-          .order-date {
-            font-size: 11px;
             color: #777265;
-            font-weight: 600;
-            font-family: sans-serif;
+            margin: 2px 0;
           }
-          .item-table {
-            width: 100%;
-            border-collapse: collapse;
+          .dashed-line {
+            border-top: 1px dashed #777265;
+            margin: 10px 0;
           }
-          .item-table th {
-            padding-bottom: 8px;
-            border-bottom: 1px solid #C6BEA9;
-            font-size: 12px;
-            font-weight: 800;
-            color: #1E1E1D;
+          .row {
+            font-size: 13px;
+            font-weight: bold;
+            margin: 4px 0;
+          }
+          .table-header {
+            font-size: 13px;
+            font-weight: bold;
+          }
+          .item-row {
+            font-size: 13px;
+          }
+          .col-item {
             text-align: left;
-            font-family: sans-serif;
+            font-weight: 600;
           }
-          .divider-solid {
-            height: 1px;
-            background-color: #C6BEA9;
-            margin: 16px 0;
+          .col-qty {
+            text-align: center;
+            width: 40px;
+          }
+          .col-price {
+            text-align: right;
+            width: 90px;
+            font-weight: bold;
           }
           .total-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          }
-          .total-label {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
-            color: #1E1E1D;
-            font-family: sans-serif;
           }
-          .total-value-container {
-            text-align: right;
-          }
-          .original-total {
-            font-size: 12px;
-            color: #A09B8C;
-            text-decoration: line-through;
-            margin-bottom: 2px;
-            font-family: sans-serif;
-          }
-          .discounted-total {
-            font-size: 18px;
-            font-weight: 800;
-            color: #1E1E1D;
-            font-family: sans-serif;
-          }
-          .total-commission {
-            font-size: 11px;
-            color: #B85C4B;
-            font-weight: bold;
-            margin-top: 2px;
-            font-family: sans-serif;
-          }
-          .customer-box {
-            background-color: #F4EFE0;
-            border-radius: 12px;
-            padding: 12px;
-            border: 1px solid #E5DEC9;
-            margin-bottom: 16px;
-            font-size: 12px;
-          }
-          .customer-title {
-            font-weight: bold;
-            color: #777265;
-            margin-bottom: 6px;
-            font-family: sans-serif;
-          }
-          .customer-row {
-            display: flex;
-            margin: 4px 0;
-            font-family: sans-serif;
-          }
-          .customer-label {
-            width: 80px;
-            font-weight: bold;
-            color: #777265;
-          }
-          .customer-value {
-            color: #1E1E1D;
-            flex: 1;
-            font-weight: 600;
+          .footer {
+            font-size: 13px;
+            text-align: center;
+            font-style: italic;
+            margin-top: 20px;
+            margin-bottom: 10px;
           }
         </style>
       </head>
       <body>
-        <div class="card">
-          <!-- Customer Details if available -->
-          ${
-            order.userName || order.userPhone || order.deliveryAddress
-              ? `
-            <div class="customer-box">
-              <div class="customer-title">Customer & Delivery Info</div>
-              ${
-                order.userName
-                  ? `<div class="customer-row"><span class="customer-label">Customer:</span><span class="customer-value">${order.userName}</span></div>`
-                  : ""
-              }
-              ${
-                order.userPhone
-                  ? `<div class="customer-row"><span class="customer-label">Phone:</span><span class="customer-value">${order.userPhone}</span></div>`
-                  : ""
-              }
-              ${
-                order.deliveryAddress
-                  ? `<div class="customer-row"><span class="customer-label">Address:</span><span class="customer-value">${order.deliveryAddress}</span></div>`
-                  : ""
-              }
-            </div>
-            `
-              : ""
-          }
-
-          <div class="header-pill">
-            <span class="order-id">ORDER ID: ${
-              order.orderId || `ORD-${order._id?.substring(0, 8)}`
-            }</span>
-            <span class="order-date">${formatPrintDate(order.orderDate)}</span>
+        <div class="receipt">
+          <div class="center">
+            <div class="title">🍽️ ${order.restaurantName || "Restaurant"}</div>
+            <div class="meta">Address: ${address}</div>
+            <div class="meta">FSSAI: ${fssai}</div>
           </div>
 
-          <table class="item-table">
+          <div class="dashed-line"></div>
+
+          <div class="row">Order ID: ${order.orderId || `ORD-${order._id?.substring(0, 8)}`}</div>
+          <div class="row">Date: ${formatPrintDate(order.orderDate)}</div>
+
+          <div class="dashed-line"></div>
+
+          <table style="width: 100%; border-collapse: collapse;">
             <thead>
-              <tr>
-                <th style="width: 50%;">ITEM</th>
-                <th style="width: 20%; text-align: center;">QTY</th>
-                <th style="width: 30%; text-align: right;">PRICE</th>
+              <tr class="table-header">
+                <th class="col-item">ITEM</th>
+                <th class="col-qty">QTY</th>
+                <th class="col-price">PRICE</th>
               </tr>
             </thead>
             <tbody>
+              <tr><td colspan="3"><div class="dashed-line" style="margin: 4px 0 8px 0;"></div></td></tr>
               ${itemRowsHtml}
             </tbody>
           </table>
 
-          <div class="divider-solid"></div>
+          <div class="dashed-line" style="margin-top: 8px;"></div>
 
-          <div class="total-row">
-            <span class="total-label">Grand Total</span>
-            <div class="total-value-container">
-              <div class="discounted-total">₹${discountedTotal.toFixed(2)}</div>
-            </div>
+          <table style="width: 100%;">
+            <tr class="total-row">
+              <td style="text-align: left;">Grand Total</td>
+              <td style="text-align: right;">₹${totalAmount}</td>
+            </tr>
+          </table>
+
+          <div class="footer">
+            🙏 Thank you for ordering!
           </div>
         </div>
       </body>
@@ -301,7 +224,7 @@ export default function OrdersPage() {
 
       console.log(`Fetching orders for restaurantId: ${storedRestId} from ${API_URL}`);
       const res = await fetch(`${API_URL}/restaurant-orders/${storedRestId}`);
-      
+
       if (!res.ok) {
         throw new Error(`Server returned status: ${res.status}`);
       }
@@ -526,7 +449,7 @@ export default function OrdersPage() {
   return (
     <View style={globalStyles.mainContainer}>
       <SafeAreaView style={globalStyles.safeArea} edges={["top", "left", "right"]}>
-       
+
         <FlatList
           ListHeaderComponent={
             <View style={[globalStyles.headerContainer, { alignSelf: "center", marginBottom: 8 }]}>

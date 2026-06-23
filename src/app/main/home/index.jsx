@@ -2,7 +2,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Animated, Image, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -32,7 +32,39 @@ export default function MainPage() {
     totalOrders: 0,
   });
 
+  const fetchBackendData = useCallback(async (restId) => {
+    if (!restId || restId === "demo_rest_101") return;
+    try {
+      // Fetch active status from backend
+      const res = await fetch(`${API_URL}/get-status/${restId}`);
+      if (res.ok) {
+        const statusData = await res.json();
+        if (statusData.success) {
+          setIsOpen(statusData.isActive);
+          Animated.timing(animationValue, {
+            toValue: statusData.isActive ? 1 : 0,
+            duration: 250,
+            useNativeDriver: false,
+          }).start();
+        }
+      }
+
+      // Fetch restaurant completed orders statistics
+      const statsRes = await fetch(`${API_URL}/restaurant-stats/${restId}`);
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        if (statsData.success) {
+          setStats(statsData.stats);
+        }
+      }
+    } catch (error) {
+      console.log("Error polling home screen stats:", error.message);
+    }
+  }, [animationValue]);
+
   useEffect(() => {
+    let intervalId = null;
+
     const fetchStoredDetails = async () => {
       try {
         const restId = await AsyncStorage.getItem("restId");
@@ -47,7 +79,7 @@ export default function MainPage() {
           fssai: fssai || "N/A",
         });
 
-        // Fetch active status from backend
+        // Fetch active status and stats from backend
         if (restId) {
           if (restId === "demo_rest_101") {
             setIsOpen(true);
@@ -59,21 +91,13 @@ export default function MainPage() {
               totalOrders: 0,
             });
           } else {
-            console.log(`Fetching status for restaurantId: ${restId}`);
-            const res = await fetch(`${API_URL}/get-status/${restId}`);
-            const statusData = await res.json();
-            if (res.ok && statusData.success) {
-              setIsOpen(statusData.isActive);
-              animationValue.setValue(statusData.isActive ? 1 : 0);
-            }
+            // Initial fetch
+            await fetchBackendData(restId);
 
-            // Fetch restaurant completed orders statistics
-            console.log(`Fetching stats for restaurantId: ${restId}`);
-            const statsRes = await fetch(`${API_URL}/restaurant-stats/${restId}`);
-            const statsData = await statsRes.json();
-            if (statsRes.ok && statsData.success) {
-              setStats(statsData.stats);
-            }
+            // Set up polling interval every 5 seconds
+            intervalId = setInterval(() => {
+              fetchBackendData(restId);
+            }, 5000);
           }
         }
       } catch (error) {
@@ -84,7 +108,13 @@ export default function MainPage() {
     };
 
     fetchStoredDetails();
-  }, []);
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [fetchBackendData]);
 
   const handleLogout = async () => {
     try {
