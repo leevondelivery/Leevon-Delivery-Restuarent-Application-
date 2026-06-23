@@ -526,7 +526,7 @@ export default function OrdersPage() {
   return (
     <View style={globalStyles.mainContainer}>
       <SafeAreaView style={globalStyles.safeArea} edges={["top", "left", "right"]}>
-        {/* Orders FlatList with Sticky Header turned into Scrolling ListHeaderComponent */}
+       
         <FlatList
           ListHeaderComponent={
             <View style={[globalStyles.headerContainer, { alignSelf: "center", marginBottom: 8 }]}>
