@@ -559,10 +559,7 @@ export default function NotificationsPage() {
           data={orders}
           renderItem={renderOrderItem}
           keyExtractor={(item) => item._id || item.orderId}
-          contentContainerStyle={[
-            localStyles.listContent,
-            orders.length === 0 && { flexGrow: 1, justifyContent: "center" }
-          ]}
+          contentContainerStyle={localStyles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -629,6 +626,7 @@ export default function NotificationsPage() {
 
 const localStyles = StyleSheet.create({
   listContent: {
+    flexGrow: 1,
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 120,

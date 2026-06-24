@@ -55,6 +55,13 @@ export default function MainLayout() {
           href: null,
         }}
       />
+      {/* Hide the menu screen from the tabbar list */}
+      <Tabs.Screen
+        name="menu/index"
+        options={{
+          href: null,
+        }}
+      />
       <Tabs.Screen
         name="home/index"
         options={{
@@ -147,14 +154,15 @@ function CustomTabBar({ state, descriptors, navigation }) {
     <View style={styles.container}>
       <View style={styles.tabBar}>
         {state.routes.map((route, index) => {
-          // Skip the index, settings/profile/index, settings/reviews/index, contact/index, and orders-history/index routes from rendering as tabs
+          // Skip the index, settings/profile/index, settings/reviews/index, contact/index, orders-history/index, and menu/index routes from rendering as tabs
           if (
             route.name === "index" ||
             route.name === "settings/profile/index" ||
             route.name === "settings/reviews/index" ||
             route.name === "settings/rejected-orders/index" ||
             route.name === "contact/index" ||
-            route.name === "orders-history/index"
+            route.name === "orders-history/index" ||
+            route.name === "menu/index"
           )
             return null;
 

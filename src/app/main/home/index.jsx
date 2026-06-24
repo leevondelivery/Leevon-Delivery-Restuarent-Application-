@@ -231,9 +231,9 @@ export default function MainPage() {
           </View>
 
           {/* My Menu Button */}
-          {/* <View style={styles.menuButtonContainer}>
+          <View style={styles.menuButtonContainer}>
             <Pressable
-              onPress={() => console.log("My Menu pressed")}
+              onPress={() => router.push("/main/menu")}
               style={({ pressed }) => [
                 styles.menuButton,
                 pressed && { opacity: 0.9, transform: [{ scale: 0.97 }] }
@@ -242,7 +242,7 @@ export default function MainPage() {
               <FontAwesome name="cutlery" size={16} color="#FFFFFF" style={styles.menuButtonIcon} />
               <Text style={styles.menuButtonText}>MY MENU</Text>
             </Pressable>
-          </View> */}
+          </View>
 
           {/* Stats Grid Cards */}
           <View style={styles.statsGrid}>

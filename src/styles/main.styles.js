@@ -339,7 +339,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#E5DEC9",
     borderRadius: 29,
     height: 53,
     paddingHorizontal: 28,

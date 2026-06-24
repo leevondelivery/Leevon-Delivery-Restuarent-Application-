@@ -373,20 +373,17 @@ export default function AcceptedOrdersPage() {
         {/* Orders FlatList with Sticky Header turned into Scrolling ListHeaderComponent */}
         <FlatList
           ListHeaderComponent={
-            <View style={[localStyles.topHeaderContainer, { alignSelf: "center", marginBottom: 8 }]}>
-              <View style={localStyles.acceptedHeaderPill}>
-                <FontAwesome name="check-circle" size={16} color="#0E8A5F" style={{ marginRight: 8 }} />
-                <Text style={localStyles.acceptedHeaderPillText}>Accepted Orders</Text>
+            <View style={[globalStyles.headerContainer, { alignSelf: "center", marginBottom: 8 }]}>
+              <View style={globalStyles.headerPill}>
+                <FontAwesome name="check-circle" size={18} color="#0E8A5F" style={globalStyles.headerPillIcon} />
+                <Text style={globalStyles.headerPillText}>Accepted Orders</Text>
               </View>
             </View>
           }
           data={error ? [] : orders}
           renderItem={renderOrderItem}
           keyExtractor={(item) => item._id || item.orderId}
-          contentContainerStyle={[
-            localStyles.listContent,
-            (orders.length === 0 || error) && { flexGrow: 1, justifyContent: "center" }
-          ]}
+          contentContainerStyle={localStyles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -547,42 +544,7 @@ export default function AcceptedOrdersPage() {
 }
 
 const localStyles = StyleSheet.create({
-  topHeaderContainer: {
-    alignItems: "center",
-    paddingTop: 16,
-    paddingBottom: 8,
-    width: "100%",
-  },
-  acceptedHeaderPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#E5DEC9", // theme color (warm tan/beige)
-    borderRadius: 20,
-    height: 40,
-    paddingHorizontal: 20,
-    borderWidth: 1,
-    borderColor: "#C6BEA9",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.03,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 1,
-      },
-      web: {
-        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.02)",
-      },
-    }),
-  },
-  acceptedHeaderPillText: {
-    color: "#1E1E1D",
-    fontSize: 15,
-    fontWeight: "700",
-  },
+
   centerContainer: {
     flex: 1,
     justifyContent: "center",
@@ -609,6 +571,7 @@ const localStyles = StyleSheet.create({
     fontWeight: "700",
   },
   listContent: {
+    flexGrow: 1,
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 120,
@@ -817,6 +780,7 @@ const localStyles = StyleSheet.create({
     fontSize: 13,
   },
   emptyContainer: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 24,
