@@ -333,6 +333,8 @@ export const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 8,
     width: "100%",
+    maxWidth: 600,
+    alignSelf: "center",
     position: "relative",
   },
   headerPill: {
@@ -394,7 +396,7 @@ export const styles = StyleSheet.create({
   },
   headerPillLeftButton: {
     position: "absolute",
-    left: 0,
+    left: 16,
     top: 30,
     width: 40,
     height: 40,
