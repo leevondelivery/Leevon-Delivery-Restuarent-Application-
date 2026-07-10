@@ -10,7 +10,7 @@ import LogoLoader from "../../../components/LogoLoader";
 import { styles } from "../../../styles/main.styles";
 
 const getApiUrl = () => {
-  return "https://restuarentbackend.onrender.com";
+  return "https://restuarentbackend-production.up.railway.app";
 };
 
 const API_URL = getApiUrl();
@@ -132,6 +132,7 @@ export default function MainPage() {
         "restaurantlocation",
         "lat",
         "lng",
+        "commission",
       ]);
       router.replace("/");
     } catch (error) {

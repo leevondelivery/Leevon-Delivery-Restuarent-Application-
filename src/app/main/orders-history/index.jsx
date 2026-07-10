@@ -23,7 +23,7 @@ import { styles as globalStyles } from "../../../styles/main.styles";
 const isMobile = Platform.OS === "ios" || Platform.OS === "android";
 
 const getApiUrl = () => {
-  return "https://restuarentbackend.onrender.com";
+  return "https://restuarentbackend-production.up.railway.app";
 };
 
 const API_URL = getApiUrl();

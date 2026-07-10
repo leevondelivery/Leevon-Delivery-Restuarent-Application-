@@ -18,7 +18,7 @@ import LogoLoader from "../components/LogoLoader";
 import { styles } from "../styles/index.styles";
 
 const getApiUrl = () => {
-  return "https://restuarentbackend.onrender.com";
+  return "https://restuarentbackend-production.up.railway.app";
 };
 
 const API_URL = getApiUrl();
@@ -100,6 +100,7 @@ export default function Index() {
         await AsyncStorage.setItem("fssai", fssai);
         await AsyncStorage.setItem("email", userEmail);
         await AsyncStorage.setItem("phone", userPhone);
+        await AsyncStorage.setItem("commission", "12");
         // await AsyncStorage.setItem("restaurantLocation", restaurantLocation);
         // await AsyncStorage.setItem("restaurantlocation", restaurantLocation);
         // await AsyncStorage.setItem("lat", lat);
@@ -140,6 +141,7 @@ export default function Index() {
         const restaurantLocation = data.user?.restaurantLocation ? JSON.stringify(data.user.restaurantLocation) : "{}";
         const lat = data.user?.restaurantLocation?.lat !== undefined && data.user?.restaurantLocation?.lat !== null ? String(data.user.restaurantLocation.lat) : "N/A";
         const lng = data.user?.restaurantLocation?.lng !== undefined && data.user?.restaurantLocation?.lng !== null ? String(data.user.restaurantLocation.lng) : "N/A";
+        const commission = data.user?.commission !== undefined && data.user?.commission !== null ? String(data.user.commission) : "12";
 
         // Store them in AsyncStorage (supporting both database schema keys and lowercase user variants)
         await AsyncStorage.setItem("restId", restId);
@@ -151,6 +153,7 @@ export default function Index() {
         await AsyncStorage.setItem("fssai", fssai);
         await AsyncStorage.setItem("email", userEmail);
         await AsyncStorage.setItem("phone", userPhone);
+        await AsyncStorage.setItem("commission", commission);
         await AsyncStorage.setItem("restaurantLocation", restaurantLocation);
         await AsyncStorage.setItem("restaurantlocation", restaurantLocation);
         await AsyncStorage.setItem("lat", lat);

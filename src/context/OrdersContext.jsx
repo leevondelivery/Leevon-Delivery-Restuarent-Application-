@@ -6,7 +6,7 @@ import Constants from "expo-constants";
 const OrdersContext = createContext(null);
 
 const getApiUrl = () => {
-  return "https://restuarentbackend.onrender.com";
+  return "https://restuarentbackend-production.up.railway.app";
 };
 
 const API_URL = getApiUrl();

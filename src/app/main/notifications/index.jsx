@@ -20,7 +20,7 @@ import LogoLoader from "../../../components/LogoLoader";
 import { useOrders } from "../../../context/OrdersContext";
 
 const getApiUrl = () => {
-  return "https://restuarentbackend.onrender.com";
+  return "https://restuarentbackend-production.up.railway.app";
 };
 
 const API_URL = getApiUrl();
@@ -81,12 +81,28 @@ export default function NotificationsPage() {
   const { setIncomingCount, refetch: refetchGlobalOrders } = useOrders();
   const [orders, setOrders] = useState([]);
   const player = useAudioPlayer(orderSound);
+  const [commission, setCommission] = useState(12);
 
   // Refs for tracking playback/delay state and order counts
   const ordersCountRef = useRef(0);
   const isWaitingRef = useRef(false);
   const timeoutIdRef = useRef(null);
   const lastOrdersCountRef = useRef(0);
+
+  useEffect(() => {
+    const loadCommission = async () => {
+      try {
+        const storedCommission = await AsyncStorage.getItem("commission");
+        if (storedCommission) {
+          const parsed = parseFloat(storedCommission);
+          if (!isNaN(parsed)) setCommission(parsed);
+        }
+      } catch (err) {
+        console.error("Error reading commission from storage:", err);
+      }
+    };
+    loadCommission();
+  }, []);
 
   // Configure global audio settings for mobile (silent mode bypass, background playing, focus)
   useEffect(() => {
@@ -408,10 +424,10 @@ export default function NotificationsPage() {
   };
 
   const renderOrderItem = ({ item }) => {
-    // 12% commission calculation as shown in the screenshot
+    // commission calculation using stored value
     const calculatedTotalPrice = item.items.reduce((sum, foodItem) => {
       const originalPrice = foodItem.price || 0;
-      const discountedPrice = originalPrice * 0.88;
+      const discountedPrice = originalPrice * (1 - commission / 100);
       return sum + (discountedPrice * (foodItem.quantity || 1));
     }, 0);
 
@@ -442,7 +458,7 @@ export default function NotificationsPage() {
           {Array.isArray(item.items) &&
             item.items.map((foodItem, index) => {
               const originalPrice = foodItem.price || 0;
-              const discountedPrice = originalPrice * 0.88;
+              const discountedPrice = originalPrice * (1 - commission / 100);
               return (
                 <View key={foodItem._id || index} style={localStyles.foodItemRow}>
                   <View style={localStyles.foodItemColName}>
@@ -454,7 +470,7 @@ export default function NotificationsPage() {
                   <View style={localStyles.foodItemColPrice}>
                     <View style={localStyles.priceBreakdownRow}>
                       <Text style={localStyles.originalPriceText}>₹{originalPrice}</Text>
-                      <Text style={localStyles.discountPercentageText}>-12%</Text>
+                      <Text style={localStyles.discountPercentageText}>-{commission}%</Text>
                     </View>
                     <Text style={localStyles.discountedPriceText}>₹{discountedPrice.toFixed(2)}</Text>
                   </View>

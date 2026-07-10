@@ -49,6 +49,7 @@ export default function SettingsPage() {
         "restaurantlocation",
         "lat",
         "lng",
+        "commission",
       ]);
       router.replace("/");
     } catch (error) {
