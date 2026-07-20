@@ -1,10 +1,88 @@
 import { FontAwesome } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { useEffect, useState } from "react";
-import { Animated, Platform, Pressable, StyleSheet, View } from "react-native";
+import { Alert, Animated, AppState, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import LogoLoader from "../../components/LogoLoader";
+import { isBatteryOptimizationEnabled, requestIgnoreBatteryOptimization } from "../../utils/batteryOptimization";
 import { OrdersProvider, useOrders } from "../../context/OrdersContext";
 
 export default function MainLayout() {
+  const [batteryOptimized, setBatteryOptimized] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    
+    const checkBatteryStatus = async () => {
+      const isOptimized = await isBatteryOptimizationEnabled();
+      if (active) {
+        setBatteryOptimized(isOptimized);
+      }
+    };
+
+    checkBatteryStatus();
+
+    // Recheck status when the app comes back to the foreground
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "active") {
+        checkBatteryStatus();
+      }
+    });
+
+    return () => {
+      active = false;
+      subscription.remove();
+    };
+  }, []);
+
+  const handleAllowBatteryExemption = () => {
+    Alert.alert(
+      "Disable Battery Restrictions",
+      "To receive instant order notifications and connect to our servers, you must set battery usage to 'No restrictions'.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Allow",
+          onPress: () => {
+            requestIgnoreBatteryOptimization();
+          },
+        },
+      ]
+    );
+  };
+
+  if (batteryOptimized) {
+    return (
+      <View style={layoutStyles.blockContainer}>
+        <LogoLoader 
+          title="Setup Required" 
+          subtitle="Battery Optimization is Active" 
+        />
+        <View style={layoutStyles.blockCard}>
+          <FontAwesome name="exclamation-triangle" size={48} color="#C53030" style={{ marginBottom: 16 }} />
+          <Text style={layoutStyles.blockTitle}>Action Required</Text>
+          <Text style={layoutStyles.blockDescription}>
+            In order to receive delivery requests and restaurant notifications in the background, you must change your battery settings.
+          </Text>
+          <Text style={layoutStyles.blockInstructions}>
+            {"Tap the button below, then select \"Allow\" on the system prompt (to set battery usage to \"No restrictions\")."}
+          </Text>
+          <Pressable 
+            onPress={handleAllowBatteryExemption}
+            style={({ pressed }) => [
+              layoutStyles.blockButton,
+              pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] }
+            ]}
+          >
+            <Text style={layoutStyles.blockButtonText}>{"ALLOW \"NO RESTRICTIONS\""}</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <OrdersProvider>
       <Tabs
@@ -272,5 +350,69 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#FFFFFF",
     zIndex: 10,
+  },
+});
+
+const layoutStyles = StyleSheet.create({
+  blockContainer: {
+    flex: 1,
+    backgroundColor: "#F7F6F1", // creamy white matching mainContainer
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  blockCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 32,
+    padding: 32,
+    width: "100%",
+    maxWidth: 380,
+    alignItems: "center",
+    marginTop: -20,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+  },
+  blockTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#1E1E1D",
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  blockDescription: {
+    fontSize: 14,
+    color: "#4A4A48",
+    textAlign: "center",
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  blockInstructions: {
+    fontSize: 13,
+    color: "#747472",
+    textAlign: "center",
+    lineHeight: 18,
+    marginBottom: 24,
+  },
+  blockButton: {
+    backgroundColor: "#E05638", // brand red
+    borderRadius: 26,
+    height: 52,
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  blockButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "700",
+    letterSpacing: 1,
   },
 });

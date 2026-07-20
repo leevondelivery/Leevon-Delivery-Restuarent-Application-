@@ -1,13 +1,13 @@
 import { FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Constants from "expo-constants";
 import { router } from "expo-router";
 import { useEffect, useState, useCallback } from "react";
-import { Animated, Image, Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Animated, AppState, Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import LogoLoader from "../../../components/LogoLoader";
 import { styles } from "../../../styles/main.styles";
+import { checkNotificationPermission, deleteFCMTokenOnBackend, requestNotificationPermission } from "../../../utils/notifications";
 
 const getApiUrl = () => {
   return "https://restuarentbackend-production.up.railway.app";
@@ -31,6 +31,52 @@ export default function MainPage() {
     totalEarnings: 0,
     totalOrders: 0,
   });
+  const [notificationsAllowed, setNotificationsAllowed] = useState(true);
+
+  // Monitor notification permission status
+  useEffect(() => {
+    let active = true;
+    
+    const checkNotifications = async () => {
+      const allowed = await checkNotificationPermission();
+      if (active) {
+        setNotificationsAllowed(allowed);
+      }
+    };
+
+    checkNotifications();
+
+    // Recheck status when the app comes back to the foreground
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "active") {
+        checkNotifications();
+      }
+    });
+
+    return () => {
+      active = false;
+      subscription.remove();
+    };
+  }, []);
+
+  const handleEnableNotifications = async () => {
+    const granted = await requestNotificationPermission();
+    if (!granted) {
+      Alert.alert(
+        "Enable Notifications",
+        "Notification permissions have been denied. Please open system settings and allow notifications for Leevon Delivery to ensure you get notified of new orders.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Open Settings",
+            onPress: () => {
+              Linking.openSettings();
+            },
+          },
+        ]
+      );
+    }
+  };
 
   const fetchBackendData = useCallback(async (restId) => {
     if (!restId || restId === "demo_rest_101") return;
@@ -117,6 +163,15 @@ export default function MainPage() {
   }, [fetchBackendData]);
 
   const handleLogout = async () => {
+    try {
+      const restId = await AsyncStorage.getItem("restId");
+      if (restId) {
+        await deleteFCMTokenOnBackend(restId);
+      }
+    } catch (fcmErr) {
+      console.log("Failed to clear FCM token on logout:", fcmErr.message);
+    }
+
     try {
       await AsyncStorage.multiRemove([
         "restId",
@@ -215,6 +270,28 @@ export default function MainPage() {
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Notification Permission Warning */}
+          {!notificationsAllowed && (
+            <Pressable
+              onPress={handleEnableNotifications}
+              style={styles.batteryWarningBanner}
+            >
+              <FontAwesome
+                name="bell-slash"
+                size={20}
+                color="#856404"
+                style={styles.batteryWarningIcon}
+              />
+              <View style={styles.batteryWarningContent}>
+                <Text style={styles.batteryWarningTitle}>Notifications Disabled</Text>
+                <Text style={styles.batteryWarningDescription}>
+                  {"To get notified of new orders, tap here to allow notification permissions."}
+                </Text>
+              </View>
+              <FontAwesome name="chevron-right" size={12} color="#856404" />
+            </Pressable>
+          )}
+
           {/* Toggle Button */}
           <View style={styles.toggleContainer}>
             <Pressable onPress={toggleStatus}>

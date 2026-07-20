@@ -1,0 +1,42 @@
+{
+  "appId": "com.leevon.restaurantapp",
+  "productName": "Leevon Delivery Restuarent Partner",
+  "npmRebuild": false,
+  "extraMetadata": {
+    "main": "electron.js",
+    "dependencies": {}
+  },
+  "directories": {
+    "output": "dist-desktop"
+  },
+  "files": [
+    "dist/**/*",
+    "electron.js",
+    "package.json",
+    "assets/**/*"
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      }
+    ],
+    "icon": "assets/images/icon.png"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Leevon Restaurant Partner"
+  },
+  "mac": {
+    "target": [
+      "dmg"
+    ],
+    "category": "public.app-category.business"
+  }
+}

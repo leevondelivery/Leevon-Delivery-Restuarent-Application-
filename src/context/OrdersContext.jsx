@@ -1,7 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Platform } from "react-native";
+import { Platform, Alert } from "react-native";
 import Constants from "expo-constants";
+import { router } from "expo-router";
+import messaging from "../utils/firebaseMessaging";
+import { registerForFCMAsync, saveFCMTokenToBackend } from "../utils/notifications";
 
 const OrdersContext = createContext(null);
 
@@ -81,6 +84,79 @@ export function OrdersProvider({ children }) {
     }, 5000);
 
     return () => clearInterval(intervalId);
+  }, [fetchOrders]);
+
+  useEffect(() => {
+    let isMounted = true;
+    let unsubscribeMessage = null;
+    let unsubscribeTokenRefresh = null;
+    let unsubscribeNotificationOpened = null;
+
+    const setupNotifications = async () => {
+      try {
+        const storedRestId = await AsyncStorage.getItem("restId");
+        if (!storedRestId || storedRestId === "N/A") return;
+
+        // Register for push notifications and get FCM token
+        const token = await registerForFCMAsync();
+        if (token && isMounted) {
+          await saveFCMTokenToBackend(storedRestId, token);
+        }
+
+        // Handle token refresh dynamically
+        unsubscribeTokenRefresh = messaging().onTokenRefresh(async (newToken) => {
+          if (isMounted) {
+            console.log('FCM Token Refreshed for Restaurant:', newToken);
+            await saveFCMTokenToBackend(storedRestId, newToken);
+          }
+        });
+
+        // Listen to messages received in the foreground
+        unsubscribeMessage = messaging().onMessage(async (remoteMessage) => {
+          if (isMounted) {
+            console.log('Foreground Message received:', remoteMessage);
+            // Refetch orders immediately
+            fetchOrders(true);
+
+            // Show alert/notification
+            Alert.alert(
+              remoteMessage.notification?.title || 'New Order Alert 🔔',
+              remoteMessage.notification?.body || 'A new order has been received.'
+            );
+          }
+        });
+
+        // Handle when a notification is clicked while the app is in the background
+        unsubscribeNotificationOpened = messaging().onNotificationOpenedApp((remoteMessage) => {
+          if (isMounted) {
+            console.log('Notification caused app to open from background:', remoteMessage);
+            router.push('/main/orders');
+          }
+        });
+
+        // Check if the app was opened from a completely closed (quit state) via a notification
+        messaging()
+          .getInitialNotification()
+          .then((remoteMessage) => {
+            if (remoteMessage && isMounted) {
+              console.log('Notification caused app to open from quit state:', remoteMessage);
+              router.push('/main/orders');
+            }
+          });
+
+      } catch (error) {
+        console.error('Failed to setup FCM notifications in OrdersContext:', error);
+      }
+    };
+
+    setupNotifications();
+
+    return () => {
+      isMounted = false;
+      if (unsubscribeMessage) unsubscribeMessage();
+      if (unsubscribeTokenRefresh) unsubscribeTokenRefresh();
+      if (unsubscribeNotificationOpened) unsubscribeNotificationOpened();
+    };
   }, [fetchOrders]);
 
   return (

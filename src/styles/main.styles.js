@@ -420,4 +420,48 @@ export const styles = StyleSheet.create({
       },
     }),
   },
+  batteryWarningBanner: {
+    backgroundColor: "#FFF3CD", // soft amber/orange background
+    borderColor: "#FFEBAA",
+    borderWidth: 1,
+    borderRadius: 24,
+    padding: 16,
+    marginVertical: 12,
+    width: "100%",
+    maxWidth: 400,
+    flexDirection: "row",
+    alignItems: "center",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.03)",
+        cursor: "pointer",
+      },
+    }),
+  },
+  batteryWarningIcon: {
+    marginRight: 12,
+  },
+  batteryWarningContent: {
+    flex: 1,
+  },
+  batteryWarningTitle: {
+    fontSize: isMobile ? 12 : 15,
+    fontWeight: "700",
+    color: "#856404", // dark amber/orange text
+    marginBottom: 2,
+  },
+  batteryWarningDescription: {
+    fontSize: isMobile ? 10 : 13,
+    color: "#856404",
+    lineHeight: isMobile ? 14 : 18,
+  },
 });

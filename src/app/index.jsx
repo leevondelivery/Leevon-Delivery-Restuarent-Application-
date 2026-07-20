@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import LogoLoader from "../components/LogoLoader";
 import { styles } from "../styles/index.styles";
+import { registerForFCMAsync, saveFCMTokenToBackend } from "../utils/notifications";
 
 const getApiUrl = () => {
   return "https://restuarentbackend-production.up.railway.app";
@@ -106,6 +107,15 @@ export default function Index() {
         // await AsyncStorage.setItem("lat", lat);
         // await AsyncStorage.setItem("lng", lng);
 
+        try {
+          const token = await registerForFCMAsync();
+          if (token) {
+            await saveFCMTokenToBackend(restId, token);
+          }
+        } catch (fcmErr) {
+          console.log("FCM registration on demo login failed:", fcmErr.message);
+        }
+
         router.replace("/main");
       } catch (error) {
         setErrorMessage("Error saving demo session data.");
@@ -158,6 +168,15 @@ export default function Index() {
         await AsyncStorage.setItem("restaurantlocation", restaurantLocation);
         await AsyncStorage.setItem("lat", lat);
         await AsyncStorage.setItem("lng", lng);
+
+        try {
+          const token = await registerForFCMAsync();
+          if (token) {
+            await saveFCMTokenToBackend(restId, token);
+          }
+        } catch (fcmErr) {
+          console.log("FCM registration on login failed:", fcmErr.message);
+        }
 
         router.replace("/main");
       } else {

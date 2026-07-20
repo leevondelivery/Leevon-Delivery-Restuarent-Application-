@@ -6,6 +6,7 @@ import { Alert, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Tex
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import LogoLoader from "../../../components/LogoLoader";
+import { deleteFCMTokenOnBackend } from "../../../utils/notifications";
 
 const isMobile = Platform.OS === "ios" || Platform.OS === "android";
 
@@ -34,6 +35,15 @@ export default function SettingsPage() {
   }, []);
 
   const handleLogout = async () => {
+    try {
+      const restId = await AsyncStorage.getItem("restId");
+      if (restId) {
+        await deleteFCMTokenOnBackend(restId);
+      }
+    } catch (fcmErr) {
+      console.log("Failed to clear FCM token on logout:", fcmErr.message);
+    }
+
     try {
       await AsyncStorage.multiRemove([
         "restId",
