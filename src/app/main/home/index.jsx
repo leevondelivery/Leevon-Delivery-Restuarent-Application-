@@ -2,7 +2,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useEffect, useState, useCallback } from "react";
-import { Alert, Animated, AppState, Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Animated, AppState, Image, Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import LogoLoader from "../../../components/LogoLoader";
@@ -18,6 +18,7 @@ const API_URL = getApiUrl();
 export default function MainPage() {
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(true);
+  const [isToggling, setIsToggling] = useState(false);
   const [animationValue] = useState(new Animated.Value(1)); // 1 = OPEN, 0 = CLOSED
   const [details, setDetails] = useState({
     restId: "N/A",
@@ -33,51 +34,6 @@ export default function MainPage() {
   });
   const [notificationsAllowed, setNotificationsAllowed] = useState(true);
 
-  // Monitor notification permission status
-  useEffect(() => {
-    let active = true;
-    
-    const checkNotifications = async () => {
-      const allowed = await checkNotificationPermission();
-      if (active) {
-        setNotificationsAllowed(allowed);
-      }
-    };
-
-    checkNotifications();
-
-    // Recheck status when the app comes back to the foreground
-    const subscription = AppState.addEventListener("change", (nextAppState) => {
-      if (nextAppState === "active") {
-        checkNotifications();
-      }
-    });
-
-    return () => {
-      active = false;
-      subscription.remove();
-    };
-  }, []);
-
-  const handleEnableNotifications = async () => {
-    const granted = await requestNotificationPermission();
-    if (!granted) {
-      Alert.alert(
-        "Enable Notifications",
-        "Notification permissions have been denied. Please open system settings and allow notifications for Leevon Delivery to ensure you get notified of new orders.",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Open Settings",
-            onPress: () => {
-              Linking.openSettings();
-            },
-          },
-        ]
-      );
-    }
-  };
-
   const fetchBackendData = useCallback(async (restId) => {
     if (!restId || restId === "demo_rest_101") return;
     try {
@@ -85,8 +41,9 @@ export default function MainPage() {
       const res = await fetch(`${API_URL}/get-status/${restId}`);
       if (res.ok) {
         const statusData = await res.json();
-        if (statusData.success) {
+        if (statusData.success && statusData.isActive !== undefined) {
           setIsOpen(statusData.isActive);
+          await AsyncStorage.setItem("isOpenStatus", JSON.stringify(statusData.isActive));
           Animated.timing(animationValue, {
             toValue: statusData.isActive ? 1 : 0,
             duration: 250,
@@ -108,6 +65,55 @@ export default function MainPage() {
     }
   }, [animationValue]);
 
+  // Monitor notification permission status and app active state
+  useEffect(() => {
+    let active = true;
+    
+    const checkNotifications = async () => {
+      const allowed = await checkNotificationPermission();
+      if (active) {
+        setNotificationsAllowed(allowed);
+      }
+    };
+
+    checkNotifications();
+
+    // Recheck status and data when the app comes back to the foreground
+    const subscription = AppState.addEventListener("change", async (nextAppState) => {
+      if (nextAppState === "active") {
+        checkNotifications();
+        const storedRestId = await AsyncStorage.getItem("restId");
+        if (storedRestId) {
+          fetchBackendData(storedRestId);
+        }
+      }
+    });
+
+    return () => {
+      active = false;
+      subscription.remove();
+    };
+  }, [fetchBackendData]);
+
+  const handleEnableNotifications = async () => {
+    const granted = await requestNotificationPermission();
+    if (!granted) {
+      Alert.alert(
+        "Enable Notifications",
+        "Notification permissions have been denied. Please open system settings and allow notifications for Leevon Delivery to ensure you get notified of new orders.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Open Settings",
+            onPress: () => {
+              Linking.openSettings();
+            },
+          },
+        ]
+      );
+    }
+  };
+
   useEffect(() => {
     let intervalId = null;
 
@@ -117,6 +123,14 @@ export default function MainPage() {
         const restLocation = await AsyncStorage.getItem("restLocation");
         const address = await AsyncStorage.getItem("address");
         const fssai = await AsyncStorage.getItem("fssai");
+
+        // Load cached status first for instant UI response on app open
+        const cachedStatus = await AsyncStorage.getItem("isOpenStatus");
+        if (cachedStatus !== null) {
+          const parsed = JSON.parse(cachedStatus);
+          setIsOpen(parsed);
+          animationValue.setValue(parsed ? 1 : 0);
+        }
 
         setDetails({
           restId: restId || "N/A",
@@ -188,6 +202,7 @@ export default function MainPage() {
         "lat",
         "lng",
         "commission",
+        "isOpenStatus",
       ]);
       router.replace("/");
     } catch (error) {
@@ -197,7 +212,13 @@ export default function MainPage() {
   };
 
   const toggleStatus = async () => {
+    if (isToggling) return;
+
+    const activeRestId = details.restId !== "N/A" ? details.restId : await AsyncStorage.getItem("restId");
+    if (!activeRestId) return;
+
     const nextState = !isOpen;
+    setIsToggling(true);
 
     // Toggle internal state and start slide animation
     setIsOpen(nextState);
@@ -208,29 +229,50 @@ export default function MainPage() {
     }).start();
 
     // Send update request to database
-    if (details.restId === "demo_rest_101") {
+    if (activeRestId === "demo_rest_101") {
+      setIsToggling(false);
       return;
     }
 
     try {
-      console.log(`Toggling status to ${nextState} for restaurantId: ${details.restId}`);
+      console.log(`Toggling status to ${nextState} for restaurantId: ${activeRestId}`);
       const res = await fetch(`${API_URL}/toggle-status`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          restaurantId: details.restId,
+          restaurantId: activeRestId,
           isActive: nextState,
         }),
       });
 
       const responseData = await res.json();
-      if (!res.ok || !responseData.success) {
-        console.error("Failed to update status on server:", responseData.message);
+      if (res.ok && responseData.success) {
+        const finalStatus = responseData.isActive !== undefined ? responseData.isActive : nextState;
+        setIsOpen(finalStatus);
+        await AsyncStorage.setItem("isOpenStatus", JSON.stringify(finalStatus));
+      } else {
+        console.error("Failed to update status on server:", responseData?.message);
+        // Revert state on failure
+        setIsOpen(!nextState);
+        Animated.timing(animationValue, {
+          toValue: !nextState ? 1 : 0,
+          duration: 250,
+          useNativeDriver: false,
+        }).start();
       }
     } catch (error) {
       console.error("Network error updating status:", error);
+      // Revert state on failure
+      setIsOpen(!nextState);
+      Animated.timing(animationValue, {
+        toValue: !nextState ? 1 : 0,
+        duration: 250,
+        useNativeDriver: false,
+      }).start();
+    } finally {
+      setIsToggling(false);
     }
   };
 
@@ -298,11 +340,15 @@ export default function MainPage() {
               <Animated.View style={[styles.toggleBar, { backgroundColor }]}>
                 <Text style={styles.toggleText}>{isOpen ? "OPEN" : "CLOSED"}</Text>
                 <Animated.View style={[styles.toggleKnob, { left: knobLeft }]}>
-                  <FontAwesome
-                    name="power-off"
-                    size={20}
-                    color={isOpen ? "#0AB28D" : "#E05638"}
-                  />
+                  {isToggling ? (
+                    <ActivityIndicator size="small" color={isOpen ? "#0AB28D" : "#E05638"} />
+                  ) : (
+                    <FontAwesome
+                      name="power-off"
+                      size={20}
+                      color={isOpen ? "#0AB28D" : "#E05638"}
+                    />
+                  )}
                 </Animated.View>
               </Animated.View>
             </Pressable>

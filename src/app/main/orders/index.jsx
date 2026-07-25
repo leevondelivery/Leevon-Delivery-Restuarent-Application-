@@ -820,12 +820,12 @@ const localStyles = StyleSheet.create({
   fixedFrameWrapper: {
     flex: 1,
     paddingHorizontal: 16,
-    paddingBottom: 24,
-    justifyContent: "center",
+    paddingTop: 4,
+    paddingBottom: 100,
+    justifyContent: "flex-start",
   },
   invoiceCardFrame: {
-    maxHeight: 520,
-    height: "76%",
+    maxHeight: "82%",
     backgroundColor: "#F4EFE0",
     borderRadius: 24,
     padding: 16,
@@ -835,7 +835,8 @@ const localStyles = StyleSheet.create({
     flexDirection: "column",
   },
   receiptScrollViewInsideFrame: {
-    flex: 1,
+    flexGrow: 0,
+    flexShrink: 1,
     width: "100%",
   },
   receiptPaper: {

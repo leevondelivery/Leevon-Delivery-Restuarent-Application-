@@ -2,7 +2,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { styles as globalStyles } from "../../../styles/main.styles";
@@ -27,6 +27,7 @@ export default function MyMenuPage() {
   const [restId, setRestId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const getStoredRestId = async () => {
@@ -132,8 +133,14 @@ export default function MyMenuPage() {
     }
   };
 
-  // Filter items: show items unless explicitly marked itemtodisplayintherestuarentapp === false
-  const visibleItems = items.filter((item) => item.itemtodisplayintherestuarentapp !== false);
+  // Filter items: show items unless explicitly marked itemtodisplayintherestuarentapp === false, filtered by search query
+  const visibleItems = items
+    .filter((item) => item.itemtodisplayintherestuarentapp !== false)
+    .filter((item) => {
+      if (!searchQuery.trim()) return true;
+      const itemName = (item.itemName || item.name || item.title || "").toLowerCase();
+      return itemName.includes(searchQuery.trim().toLowerCase());
+    });
 
   return (
     <View style={globalStyles.mainContainer}>
@@ -163,6 +170,26 @@ export default function MyMenuPage() {
 
           {/* Content Area */}
           <View style={localStyles.contentContainer}>
+            {/* Search Bar */}
+            <View style={localStyles.searchContainer}>
+              <FontAwesome name="search" size={18} color="#777265" style={localStyles.searchIcon} />
+              <TextInput
+                style={localStyles.searchInput}
+                placeholder="Search menu items..."
+                placeholderTextColor="#A09A8C"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                clearButtonMode="while-editing"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {searchQuery.length > 0 && (
+                <Pressable onPress={() => setSearchQuery("")} hitSlop={10}>
+                  <FontAwesome name="times-circle" size={18} color="#777265" />
+                </Pressable>
+              )}
+            </View>
+
             <View style={localStyles.menuCard}>
               {loading ? (
                 <View style={localStyles.loaderContainer}>
@@ -171,7 +198,22 @@ export default function MyMenuPage() {
               ) : visibleItems.length === 0 ? (
                 <View style={localStyles.emptyContainer}>
                   <FontAwesome name="info-circle" size={40} color="#777265" style={{ marginBottom: 12 }} />
-                  <Text style={localStyles.emptyText}>No menu items found for this restaurant.</Text>
+                  <Text style={localStyles.emptyText}>
+                    {searchQuery.trim()
+                      ? `No menu items matching "${searchQuery}"`
+                      : "No menu items found for this restaurant."}
+                  </Text>
+                  {searchQuery.trim().length > 0 && (
+                    <Pressable
+                      onPress={() => setSearchQuery("")}
+                      style={({ pressed }) => [
+                        localStyles.clearSearchButton,
+                        pressed && { opacity: 0.8 },
+                      ]}
+                    >
+                      <Text style={localStyles.clearSearchButtonText}>Clear Search</Text>
+                    </Pressable>
+                  )}
                 </View>
               ) : (
                 visibleItems.map((item, index) => {
@@ -222,6 +264,60 @@ const localStyles = StyleSheet.create({
     paddingTop: 24,
     justifyContent: "flex-start",
     alignItems: "center",
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 30,
+    height: 52,
+    paddingHorizontal: 18,
+    width: "100%",
+    maxWidth: 530,
+    alignSelf: "center",
+    marginBottom: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: "0 4px 16px rgba(0, 0, 0, 0.03)",
+      },
+    }),
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: isMobile ? 15 : 16,
+    color: "#1E1E1D",
+    fontWeight: "600",
+    height: "100%",
+    paddingVertical: 0,
+    ...Platform.select({
+      web: {
+        outlineStyle: "none",
+      },
+    }),
+  },
+  clearSearchButton: {
+    marginTop: 12,
+    backgroundColor: "#1E1E1D",
+    borderRadius: 18,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  clearSearchButtonText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "700",
   },
   menuCard: {
     backgroundColor: "#EADFC9", // soft tan/brown color matching theme

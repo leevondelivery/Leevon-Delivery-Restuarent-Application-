@@ -20,6 +20,12 @@ export default function ContactUsPage() {
     );
   };
 
+  const handlePressWhatsApp = () => {
+    Linking.openURL("https://wa.me/917207610235").catch((err) =>
+      console.error("Failed to open WhatsApp:", err)
+    );
+  };
+
   const handlePressSocial = (platform) => {
     let url = "";
     if (platform === "instagram") {
@@ -79,6 +85,20 @@ export default function ContactUsPage() {
               <View style={localStyles.rowLeft}>
                 <FontAwesome name="phone" size={24} color="#1E1E1D" style={localStyles.icon} />
                 <Text style={localStyles.valueText}>+91 7207610235</Text>
+              </View>
+            </Pressable>
+
+            {/* WhatsApp Capsule */}
+            <Pressable
+              onPress={handlePressWhatsApp}
+              style={({ pressed }) => [
+                localStyles.capsuleRow,
+                pressed && { opacity: 0.9, transform: [{ scale: 0.99 }] }
+              ]}
+            >
+              <View style={localStyles.rowLeft}>
+                <FontAwesome name="whatsapp" size={24} color="#25D366" style={localStyles.icon} />
+                <Text style={localStyles.valueText}>WhatsApp</Text>
               </View>
             </Pressable>
 

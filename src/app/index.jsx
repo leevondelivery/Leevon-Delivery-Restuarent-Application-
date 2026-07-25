@@ -244,7 +244,7 @@ export default function Index() {
           <View style={styles.overlayContainer}>
             {/* Logo Pill */}
             <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>LEEVON</Text>
+              <Text style={styles.logoText}>LEEVON DELIVERY</Text>
             </View>
 
             {/* Email Input Pill */}

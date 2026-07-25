@@ -87,8 +87,14 @@ export default function SettingsPage() {
     );
   }
 
+  const capitalizeFirst = (str) => {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
   // Get first letter of email or "A" as avatar initial
-  const displayEmailName = email.includes("@") ? email.split("@")[0] : email;
+  const rawName = email.includes("@") ? email.split("@")[0] : email;
+  const displayEmailName = capitalizeFirst(rawName);
   const avatarLetter = displayEmailName ? displayEmailName.charAt(0).toUpperCase() : "A";
 
   return (
@@ -112,7 +118,7 @@ export default function SettingsPage() {
               <Text style={styles.profileName} numberOfLines={1}>{displayEmailName}</Text>
               <View style={styles.phoneRow}>
                 <FontAwesome name="phone" size={17} color="#D4AF37" style={styles.phoneIcon} />
-                <Text style={styles.profilePhone}>{phone}</Text>
+                <Text style={styles.profilePhone}>{capitalizeFirst(phone)}</Text>
               </View>
             </View>
           </View>
@@ -550,6 +556,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#1E1E1D",
     marginBottom: 4,
+    textTransform: "capitalize",
   },
   phoneRow: {
     flexDirection: "row",
@@ -562,6 +569,7 @@ const styles = StyleSheet.create({
     fontSize: isMobile ? 15 : 18,
     color: "#777265",
     fontWeight: "600",
+    textTransform: "capitalize",
   },
   actionsContainer: {
     backgroundColor: "#E5DEC9", // beige rounded box matching mockup

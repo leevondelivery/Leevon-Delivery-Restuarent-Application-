@@ -33,8 +33,9 @@ export const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 9999,
     paddingVertical: 12,
-    paddingHorizontal: 48,
-    marginBottom: 40,
+    paddingHorizontal: 32,
+    marginTop: -70,
+    marginBottom: 75,
     alignItems: "center",
     justifyContent: "center",
     ...Platform.select({
@@ -55,9 +56,9 @@ export const styles = StyleSheet.create({
   },
   logoText: {
     color: "#000000",
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "700",
-    letterSpacing: 2,
+    letterSpacing: 1.5,
   },
   inputContainer: {
     flexDirection: "row",
