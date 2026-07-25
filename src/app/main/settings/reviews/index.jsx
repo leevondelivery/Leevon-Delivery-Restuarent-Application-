@@ -216,7 +216,7 @@ export default function RestaurantReviewsPage() {
           ListHeaderComponent={
             <>
               {/* Header with Back Button */}
-              <View style={[globalStyles.headerContainer, { alignSelf: "center" }]}>
+              <View style={[globalStyles.headerContainer, { alignSelf: "center", justifyContent: "space-between" }]}>
                 <Pressable
                   onPress={() => router.push("/main/settings")}
                   style={({ pressed }) => [

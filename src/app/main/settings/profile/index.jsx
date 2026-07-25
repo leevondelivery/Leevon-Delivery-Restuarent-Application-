@@ -376,7 +376,7 @@ export default function RestaurantProfilePage() {
           scrollEnabled={!showEditTimingsModal}
         >
           {/* Header Pill with Back Button */}
-          <View style={globalStyles.headerContainer}>
+          <View style={[globalStyles.headerContainer, { justifyContent: "space-between" }]}>
             <Pressable onPress={() => router.push("/main/settings")} style={globalStyles.headerPillLeftButton}>
               <FontAwesome name="chevron-left" size={16} color="#777265" />
             </Pressable>

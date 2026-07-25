@@ -42,7 +42,7 @@ export default function ContactUsPage() {
       <SafeAreaView style={globalStyles.safeArea} edges={["top", "left", "right"]}>
         <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
           {/* Header Section */}
-          <View style={globalStyles.headerContainer}>
+          <View style={[globalStyles.headerContainer, { justifyContent: "space-between" }]}>
             {/* Circular Back Button on Left */}
             <Pressable
               onPress={() => router.push("/main/settings")}

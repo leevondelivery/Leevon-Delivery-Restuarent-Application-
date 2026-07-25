@@ -189,7 +189,7 @@ export default function RejectedOrdersPage() {
       <SafeAreaView style={globalStyles.safeArea} edges={["top", "left", "right"]}>
         <FlatList
           ListHeaderComponent={
-            <View style={[globalStyles.headerContainer, { alignSelf: "center", marginBottom: 8 }]}>
+            <View style={[globalStyles.headerContainer, { alignSelf: "center", justifyContent: "space-between", marginBottom: 8 }]}>
               <Pressable
                 onPress={() => router.push("/main/settings")}
                 style={({ pressed }) => [

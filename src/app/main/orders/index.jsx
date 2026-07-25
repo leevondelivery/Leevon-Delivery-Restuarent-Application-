@@ -9,6 +9,7 @@ import {
   Platform,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -376,78 +377,39 @@ export default function AcceptedOrdersPage() {
   return (
     <View style={globalStyles.mainContainer}>
       <SafeAreaView style={globalStyles.safeArea} edges={["top", "left", "right"]}>
-        {/* Orders FlatList with Sticky Header turned into Scrolling ListHeaderComponent */}
-        <FlatList
-          ListHeaderComponent={
-            <View style={[globalStyles.headerContainer, { alignSelf: "center", marginBottom: 8 }]}>
+        {selectedOrderForInvoice ? (
+          /* Fixed Invoice Frame View */
+          <View style={localStyles.fixedFrameWrapper}>
+            {/* Fixed Top Header with Back Button */}
+            <View style={[globalStyles.headerContainer, { justifyContent: "space-between", marginBottom: 12 }]}>
+              <Pressable
+                onPress={() => setSelectedOrderForInvoice(null)}
+                style={({ pressed }) => [
+                  globalStyles.headerPillLeftButton,
+                  pressed && { opacity: 0.7 },
+                ]}
+              >
+                <FontAwesome name="chevron-left" size={16} color="#1E1E1D" />
+              </Pressable>
+
               <View style={globalStyles.headerPill}>
-                <FontAwesome name="check-circle" size={18} color="#0E8A5F" style={globalStyles.headerPillIcon} />
-                <Text style={globalStyles.headerPillText}>Accepted Orders</Text>
+                <FontAwesome name="file-text-o" size={18} color="#777265" style={globalStyles.headerPillIcon} />
+                <Text style={globalStyles.headerPillText}>Order Invoice</Text>
               </View>
+
+              <View style={globalStyles.headerPillRightSpacer} />
             </View>
-          }
-          data={error ? [] : orders}
-          renderItem={renderOrderItem}
-          keyExtractor={(item) => item._id || item.orderId}
-          contentContainerStyle={localStyles.listContent}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={["#0E8A5F"]}
-              tintColor="#0E8A5F"
-            />
-          }
-          ListEmptyComponent={
-            error ? (
-              <View style={localStyles.centerContainer}>
-                <FontAwesome name="exclamation-triangle" size={48} color="#E05638" />
-                <Text style={localStyles.errorText}>{error}</Text>
-                <Pressable onPress={() => refetch()} style={localStyles.retryButton}>
-                  <Text style={localStyles.retryText}>Retry</Text>
-                </Pressable>
-              </View>
-            ) : (
-              <View style={localStyles.emptyContainer}>
-                <FontAwesome name="check-square-o" size={60} color="#777265" />
-                <Text style={localStyles.emptyTitle}>No Accepted Orders</Text>
-                <Text style={localStyles.emptySubtitle}>
-                  Accepted customer orders will be listed here.
-                </Text>
-                <Pressable onPress={() => refetch()} style={localStyles.retryButton}>
-                  <Text style={localStyles.retryText}>Refresh</Text>
-                </Pressable>
-              </View>
-            )
-          }
-        />
-      </SafeAreaView>
 
-      {/* Receipt Modal Popup */}
-      <Modal
-        visible={selectedOrderForInvoice !== null}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setSelectedOrderForInvoice(null)}
-      >
-        <View style={localStyles.modalOverlay}>
-          <View style={localStyles.modalContainer}>
-            {/* Close Button */}
-            <Pressable
-              onPress={() => setSelectedOrderForInvoice(null)}
-              style={({ pressed }) => [
-                localStyles.closeButton,
-                pressed && { opacity: 0.8 },
-              ]}
-            >
-              <FontAwesome name="times" size={14} color="#1E1E1D" />
-            </Pressable>
-
-            {selectedOrderForInvoice && (
-              <>
-                {/* White Receipt Sheet */}
-                <View style={localStyles.receiptSheet}>
+            {/* FIXED CARD FRAME */}
+            <View style={localStyles.invoiceCardFrame}>
+              {/* SCROLLABLE RECEIPT AREA (Only the white receipt paper scrolls!) */}
+              <ScrollView
+                style={localStyles.receiptScrollViewInsideFrame}
+                contentContainerStyle={{ paddingBottom: 16 }}
+                showsVerticalScrollIndicator={true}
+                bounces={true}
+              >
+                <View style={localStyles.receiptPaper}>
                   {/* Restaurant Header */}
                   <View style={localStyles.receiptCenter}>
                     <Text style={[localStyles.monoText, localStyles.receiptRestName]}>
@@ -491,7 +453,7 @@ export default function AcceptedOrdersPage() {
                     ------------------------------------------
                   </Text>
 
-                  {/* Items */}
+                  {/* Food Items List */}
                   {Array.isArray(selectedOrderForInvoice.items) &&
                     selectedOrderForInvoice.items.map((foodItem, index) => {
                       const discountedPrice = foodItem.price || 0;
@@ -528,23 +490,72 @@ export default function AcceptedOrdersPage() {
                     🙏 Thank you for ordering!
                   </Text>
                 </View>
+              </ScrollView>
 
-                {/* Print Button */}
+              {/* FIXED PRINT BUTTON AT BOTTOM OF FRAME */}
+              <View style={localStyles.fixedPrintBar}>
                 <Pressable
                   onPress={() => handleGenerateInvoice(selectedOrderForInvoice)}
                   style={({ pressed }) => [
-                    localStyles.printAgainButton,
-                    pressed && { opacity: 0.9, transform: [{ scale: 0.99 }] },
+                    localStyles.printButtonFrame,
+                    pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] },
                   ]}
                 >
-                  <FontAwesome name="print" size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
-                  <Text style={localStyles.printAgainButtonText}>Print</Text>
+                  <FontAwesome name="print" size={18} color="#FFFFFF" style={{ marginRight: 10 }} />
+                  <Text style={localStyles.printButtonText}>Print Receipt</Text>
                 </Pressable>
-              </>
-            )}
+              </View>
+            </View>
           </View>
-        </View>
-      </Modal>
+        ) : (
+          /* Accepted Orders List */
+          <FlatList
+            ListHeaderComponent={
+              <View style={[globalStyles.headerContainer, { alignSelf: "center", marginBottom: 8 }]}>
+                <View style={globalStyles.headerPill}>
+                  <FontAwesome name="check-circle" size={18} color="#0E8A5F" style={globalStyles.headerPillIcon} />
+                  <Text style={globalStyles.headerPillText}>Accepted Orders</Text>
+                </View>
+              </View>
+            }
+            data={error ? [] : orders}
+            renderItem={renderOrderItem}
+            keyExtractor={(item) => item._id || item.orderId}
+            contentContainerStyle={localStyles.listContent}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#0E8A5F"]}
+                tintColor="#0E8A5F"
+              />
+            }
+            ListEmptyComponent={
+              error ? (
+                <View style={localStyles.centerContainer}>
+                  <FontAwesome name="exclamation-triangle" size={48} color="#E05638" />
+                  <Text style={localStyles.errorText}>{error}</Text>
+                  <Pressable onPress={() => refetch()} style={localStyles.retryButton}>
+                    <Text style={localStyles.retryText}>Retry</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <View style={localStyles.emptyContainer}>
+                  <FontAwesome name="check-square-o" size={60} color="#777265" />
+                  <Text style={localStyles.emptyTitle}>No Accepted Orders</Text>
+                  <Text style={localStyles.emptySubtitle}>
+                    Accepted customer orders will be listed here.
+                  </Text>
+                  <Pressable onPress={() => refetch()} style={localStyles.retryButton}>
+                    <Text style={localStyles.retryText}>Refresh</Text>
+                  </Pressable>
+                </View>
+              )
+            }
+          />
+        )}
+      </SafeAreaView>
     </View>
   );
 }
@@ -806,38 +817,50 @@ const localStyles = StyleSheet.create({
     maxWidth: 260,
     lineHeight: 18,
   },
-  modalOverlay: {
+  fixedFrameWrapper: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    paddingHorizontal: 16,
+    paddingBottom: 24,
     justifyContent: "center",
-    alignItems: "center",
-    padding: 16,
   },
-  modalContainer: {
+  invoiceCardFrame: {
+    maxHeight: 520,
+    height: "76%",
     backgroundColor: "#F4EFE0",
-    borderRadius: 28,
-    padding: 20,
+    borderRadius: 24,
+    padding: 16,
+    maxWidth: 480,
     width: "100%",
-    maxWidth: 420,
-    position: "relative",
+    alignSelf: "center",
+    flexDirection: "column",
   },
-  closeButton: {
-    position: "absolute",
-    right: 16,
-    top: 16,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#E5DEC9",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 10,
+  receiptScrollViewInsideFrame: {
+    flex: 1,
+    width: "100%",
   },
-  receiptSheet: {
+  receiptPaper: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    padding: 20,
-    marginTop: 20,
+    padding: 16,
+  },
+  fixedPrintBar: {
+    paddingTop: 12,
+    width: "100%",
+  },
+  printButtonFrame: {
+    backgroundColor: "#1E1E1D",
+    height: 52,
+    borderRadius: 26,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+  },
+  printButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: 0.5,
   },
   receiptCenter: {
     alignItems: "center",

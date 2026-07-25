@@ -331,7 +331,7 @@ export const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
     paddingTop: 16,
     paddingBottom: 8,
     paddingHorizontal: 16,
