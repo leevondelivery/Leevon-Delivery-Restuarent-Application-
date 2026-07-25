@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert,
+  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -33,6 +34,17 @@ export default function Index() {
   const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
+    if (Platform.OS === "web" && typeof document !== "undefined") {
+      const fontId = "google-calligraphy-font";
+      if (!document.getElementById(fontId)) {
+        const link = document.createElement("link");
+        link.id = fontId;
+        link.rel = "stylesheet";
+        link.href = "https://fonts.googleapis.com/css2?family=Merriweather:wght@700;900&family=Lora:ital,wght@0,700;1,700&display=swap";
+        document.head.appendChild(link);
+      }
+    }
+
     const checkLoginStatus = async () => {
       try {
         const restId = await AsyncStorage.getItem("restId");
@@ -242,9 +254,14 @@ export default function Index() {
           style={styles.keyboardView}
         >
           <View style={styles.overlayContainer}>
-            {/* Logo Pill */}
+            {/* Logo Pill Card with Company Logo */}
             <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>LEEVON DELIVERY</Text>
+              <Image
+                source={require("../../assets/images/company-logo.png")}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
+              <Text style={styles.logoText}>Leevon Delivery</Text>
             </View>
 
             {/* Email Input Pill */}

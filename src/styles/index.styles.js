@@ -31,11 +31,12 @@ export const styles = StyleSheet.create({
   },
   logoContainer: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 9999,
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    marginTop: -70,
-    marginBottom: 75,
+    borderRadius: 36,
+    paddingVertical: 18,
+    paddingHorizontal: 28,
+    minWidth: 180,
+    marginTop: -50,
+    marginBottom: 40,
     alignItems: "center",
     justifyContent: "center",
     ...Platform.select({
@@ -54,11 +55,28 @@ export const styles = StyleSheet.create({
       },
     }),
   },
+  logoImage: {
+    width: 90,
+    height: 90,
+    marginBottom: 4,
+  },
   logoText: {
     color: "#000000",
     fontSize: 20,
     fontWeight: "700",
-    letterSpacing: 1.5,
+    letterSpacing: 2,
+    marginTop: 6,
+    ...Platform.select({
+      ios: {
+        fontFamily: "Georgia",
+      },
+      android: {
+        fontFamily: "serif",
+      },
+      web: {
+        fontFamily: "'Lucida Bright', 'Lucida Fax', 'Merriweather', 'Lora', Georgia, serif",
+      },
+    }),
   },
   inputContainer: {
     flexDirection: "row",
