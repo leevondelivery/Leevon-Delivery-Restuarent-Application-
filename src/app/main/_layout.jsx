@@ -1,13 +1,14 @@
 import { FontAwesome } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, Animated, AppState, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Animated, AppState, Modal, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import LogoLoader from "../../components/LogoLoader";
 import { isBatteryOptimizationEnabled, requestIgnoreBatteryOptimization } from "../../utils/batteryOptimization";
 import { OrdersProvider, useOrders } from "../../context/OrdersContext";
 
 export default function MainLayout() {
   const [batteryOptimized, setBatteryOptimized] = useState(false);
+  const [showBatteryModal, setShowBatteryModal] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -35,30 +36,60 @@ export default function MainLayout() {
   }, []);
 
   const handleAllowBatteryExemption = () => {
-    Alert.alert(
-      "Disable Battery Restrictions",
-      "To receive instant order notifications and connect to our servers, you must set battery usage to 'No restrictions'.",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Allow",
-          onPress: () => {
-            requestIgnoreBatteryOptimization();
-          },
-        },
-      ]
-    );
+    setShowBatteryModal(true);
+  };
+
+  const handleConfirmBatteryAllow = () => {
+    setShowBatteryModal(false);
+    requestIgnoreBatteryOptimization();
   };
 
   if (batteryOptimized) {
     return (
       <View style={layoutStyles.blockContainer}>
-        <LogoLoader 
-          title="Setup Required" 
-          subtitle="Battery Optimization is Active" 
+        {/* Custom Battery Permission Modal */}
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={showBatteryModal}
+          onRequestClose={() => setShowBatteryModal(false)}
+        >
+          <View style={layoutStyles.modalBackdrop}>
+            <View style={layoutStyles.modalCard}>
+              <View style={layoutStyles.modalIconContainer}>
+                <FontAwesome name="battery-quarter" size={32} color="#FFFFFF" />
+              </View>
+              <Text style={layoutStyles.modalTitle}>Set Battery to{"\n"}'No Restrictions'</Text>
+              <Text style={layoutStyles.modalBody}>
+                To ensure you receive new order alerts instantly, please select 'Allow' on the next screen so Leevon Delivery can run unrestricted in the background.
+              </Text>
+              <View style={layoutStyles.modalButtons}>
+                <Pressable
+                  style={({ pressed }) => [
+                    layoutStyles.modalCancelButton,
+                    pressed && { opacity: 0.7 }
+                  ]}
+                  onPress={() => setShowBatteryModal(false)}
+                >
+                  <Text style={layoutStyles.modalCancelText}>CANCEL</Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => [
+                    layoutStyles.modalAllowButton,
+                    pressed && { opacity: 0.85, transform: [{ scale: 0.97 }] }
+                  ]}
+                  onPress={handleConfirmBatteryAllow}
+                >
+                  <Text style={layoutStyles.modalAllowText}>ALLOW</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        <LogoLoader
+          title="Setup Required"
+          subtitle="Battery Optimization is Active"
         />
         <View style={layoutStyles.blockCard}>
           <FontAwesome name="exclamation-triangle" size={48} color="#C53030" style={{ marginBottom: 16 }} />
@@ -415,4 +446,100 @@ const layoutStyles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 1,
   },
+  // ── Battery Alert Modal styles ─────────────────────────────────
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 28,
+  },
+  modalCard: {
+    backgroundColor: "#F9F8F3",
+    borderRadius: 32,
+    width: "100%",
+    maxWidth: 360,
+    paddingTop: 36,
+    paddingBottom: 28,
+    paddingHorizontal: 28,
+    alignItems: "center",
+    elevation: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 20,
+  },
+  modalIconContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#E05638",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
+    elevation: 4,
+    shadowColor: "#E05638",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#1E1E1D",
+    textAlign: "center",
+    lineHeight: 28,
+    marginBottom: 12,
+    letterSpacing: 0.2,
+  },
+  modalBody: {
+    fontSize: 14,
+    color: "#4A4A48",
+    textAlign: "center",
+    lineHeight: 21,
+    marginBottom: 28,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    width: "100%",
+  },
+  modalCancelButton: {
+    flex: 1,
+    height: 50,
+    borderRadius: 9999,
+    borderWidth: 1.5,
+    borderColor: "#D0CFC9",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "transparent",
+  },
+  modalCancelText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#747472",
+    letterSpacing: 0.8,
+  },
+  modalAllowButton: {
+    flex: 1,
+    height: 50,
+    borderRadius: 9999,
+    backgroundColor: "#E05638",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 3,
+    shadowColor: "#E05638",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  modalAllowText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    letterSpacing: 0.8,
+  },
 });
+

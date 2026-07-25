@@ -59,6 +59,8 @@ export default function ContactUsPage() {
               <FontAwesome name="envelope" size={18} color="#777265" style={globalStyles.headerPillIcon} />
               <Text style={globalStyles.headerPillText}>Contact Us</Text>
             </View>
+
+            <View style={globalStyles.headerPillRightSpacer} />
           </View>
 
           {/* Content Area */}

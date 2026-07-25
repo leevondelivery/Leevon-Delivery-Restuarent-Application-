@@ -452,12 +452,12 @@ export default function OrdersPage() {
 
         <FlatList
           ListHeaderComponent={
-            <View style={[globalStyles.headerContainer, { alignSelf: "center", marginBottom: 8 }]}>
+            <View style={globalStyles.headerContainer}>
               <Pressable
                 onPress={() => router.push("/main/settings")}
                 style={({ pressed }) => [
                   globalStyles.headerPillLeftButton,
-                  pressed && { opacity: 0.8 },
+                  pressed && { opacity: 0.7 },
                 ]}
               >
                 <FontAwesome name="chevron-left" size={16} color="#1E1E1D" />
@@ -467,6 +467,8 @@ export default function OrdersPage() {
                 <FontAwesome name="clipboard" size={18} color="#777265" style={globalStyles.headerPillIcon} />
                 <Text style={globalStyles.headerPillText}>My Orders</Text>
               </View>
+
+              <View style={globalStyles.headerPillRightSpacer} />
             </View>
           }
           data={error ? [] : orders}
@@ -474,7 +476,7 @@ export default function OrdersPage() {
           keyExtractor={(item) => item._id || item.orderId}
           contentContainerStyle={[
             localStyles.listContent,
-            (orders.length === 0 || error) && { flexGrow: 1, justifyContent: "center" }
+            (orders.length === 0 || error) && { flexGrow: 1 }
           ]}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -496,12 +498,14 @@ export default function OrdersPage() {
               </View>
             ) : (
               <View style={localStyles.emptyContainer}>
-                <FontAwesome name="calendar-times-o" size={60} color="#777265" />
+                <View style={localStyles.emptyIconCircle}>
+                  <FontAwesome name="calendar-times-o" size={44} color="#777265" />
+                </View>
                 <Text style={localStyles.emptyTitle}>No Orders Yet</Text>
                 <Text style={localStyles.emptySubtitle}>
                   When customers place orders, they will show up here.
                 </Text>
-                <Pressable onPress={() => fetchOrders()} style={localStyles.retryButton}>
+                <Pressable onPress={() => fetchOrders()} style={({ pressed }) => [localStyles.retryButton, pressed && { opacity: 0.85 }]}>
                   <Text style={localStyles.retryText}>Refresh</Text>
                 </Pressable>
               </View>
@@ -636,6 +640,32 @@ export default function OrdersPage() {
 }
 
 const localStyles = StyleSheet.create({
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    paddingBottom: 8,
+    width: "100%",
+  },
+  headerBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+    ...Platform.select({
+      ios: { shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4 },
+      android: { elevation: 2 },
+      web: { boxShadow: "0 2px 8px rgba(0,0,0,0.04)", cursor: "pointer" },
+    }),
+  },
+  headerSpacer: {
+    width: 40, // same as headerBackButton to keep pill centered
+  },
+
   centerContainer: {
     flex: 1,
     justifyContent: "center",
@@ -658,14 +688,20 @@ const localStyles = StyleSheet.create({
   },
   retryButton: {
     backgroundColor: "#1E1E1D",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 20,
+    paddingHorizontal: 40,
+    paddingVertical: 14,
+    borderRadius: 9999,
+    ...Platform.select({
+      ios: { shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 6 },
+      android: { elevation: 3 },
+      web: { boxShadow: "0 4px 12px rgba(0,0,0,0.1)", cursor: "pointer" },
+    }),
   },
   retryText: {
     color: "#FFFFFF",
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "700",
+    letterSpacing: 0.5,
   },
   listContent: {
     paddingHorizontal: 16,
@@ -893,24 +929,42 @@ const localStyles = StyleSheet.create({
     fontWeight: "500",
   },
   emptyContainer: {
+    flex: 1,
     alignItems: "center",
-    paddingTop: 60,
-    paddingHorizontal: 24,
+    justifyContent: "center",
+    paddingTop: 40,
+    paddingBottom: 40,
+    paddingHorizontal: 32,
+  },
+  emptyIconCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#E5DEC9",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 24,
+    ...Platform.select({
+      ios: { shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.06, shadowRadius: 8 },
+      android: { elevation: 2 },
+      web: { boxShadow: "0 4px 12px rgba(0,0,0,0.05)" },
+    }),
   },
   emptyTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: "800",
     color: "#1E1E1D",
-    marginTop: 16,
-    marginBottom: 8,
+    marginBottom: 10,
+    letterSpacing: 0.2,
   },
   emptySubtitle: {
-    fontSize: 13,
+    fontSize: 14,
     color: "#A6A6A6",
     textAlign: "center",
-    marginBottom: 24,
-    maxWidth: 260,
-    lineHeight: 18,
+    marginBottom: 32,
+    maxWidth: 240,
+    lineHeight: 20,
+    fontWeight: "500",
   },
   modalOverlay: {
     flex: 1,

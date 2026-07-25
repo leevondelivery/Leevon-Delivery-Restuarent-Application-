@@ -231,6 +231,8 @@ export default function RestaurantReviewsPage() {
                   <FontAwesome name="star" size={18} color="#777265" style={globalStyles.headerPillIcon} />
                   <Text style={globalStyles.headerPillText}>My Reviews</Text>
                 </View>
+
+                <View style={globalStyles.headerPillRightSpacer} />
               </View>
 
               {/* Reviews Summary Pill Cards */}

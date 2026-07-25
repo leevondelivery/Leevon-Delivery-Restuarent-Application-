@@ -384,6 +384,7 @@ export default function RestaurantProfilePage() {
               <FontAwesome name="user" size={18} color="#777265" style={globalStyles.headerPillIcon} />
               <Text style={globalStyles.headerPillText}>Restaurant Profile</Text>
             </View>
+            <View style={globalStyles.headerPillRightSpacer} />
           </View>
 
           {/* Main Info Card */}
@@ -398,21 +399,10 @@ export default function RestaurantProfilePage() {
               <Text style={styles.profileSubtext}>Outlet Details</Text>
             </View>
           </View>
-
           {/* Details Container */}
           <View style={styles.detailsBox}>
-            {/* Restaurant ID */}
-            <View style={styles.detailRow}>
-              <View style={styles.iconWrapper}>
-                <FontAwesome name="hashtag" size={18} color="#1E1E1D" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.detailLabel}>RESTAURANT ID</Text>
-                <Text style={styles.detailValue} numberOfLines={1}>{details.restId}</Text>
-              </View>
-            </View>
-
             {/* Contact Email */}
+
             <View style={styles.detailRow}>
               <View style={styles.iconWrapper}>
                 <FontAwesome name="envelope" size={18} color="#1E1E1D" />
@@ -795,8 +785,9 @@ const styles = StyleSheet.create({
   },
   profileCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 29,
-    padding: 24,
+    borderRadius: 32,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
     flexDirection: "row",
     alignItems: "center",
     marginTop: 16,
@@ -808,7 +799,7 @@ const styles = StyleSheet.create({
       ios: {
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.03,
+        shadowOpacity: 0.06,
         shadowRadius: 10,
       },
       android: {
@@ -820,33 +811,34 @@ const styles = StyleSheet.create({
     }),
   },
   avatarCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "#1E1E1D", // black/charcoal
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#1E1E1D",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 16,
+    marginRight: 18,
   },
   profileInfo: {
     flex: 1,
   },
   profileName: {
-    fontSize: isMobile ? 20 : 24,
+    fontSize: isMobile ? 22 : 26,
     fontWeight: "800",
     color: "#1E1E1D",
+    letterSpacing: 0.3,
   },
   profileSubtext: {
     fontSize: isMobile ? 12 : 14,
     color: "#A6A6A6",
     fontWeight: "500",
-    marginTop: 2,
+    marginTop: 4,
   },
   detailsBox: {
-    backgroundColor: "#E5DEC9", // warm beige container
+    backgroundColor: "#E5DEC9",
     borderRadius: 37,
-    padding: 20,
-    gap: 12,
+    padding: 16,
+    gap: 10,
     width: "100%",
     maxWidth: 530,
     alignSelf: "center",
@@ -854,8 +846,8 @@ const styles = StyleSheet.create({
       ios: {
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.04,
-        shadowRadius: 12,
+        shadowOpacity: 0.05,
+        shadowRadius: 16,
       },
       android: {
         elevation: 3,
@@ -869,44 +861,46 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFFFFF",
-    padding: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     borderRadius: 24,
-    minHeight: 70,
+    minHeight: 68,
   },
   iconWrapper: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: "#FFF",
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#F7F6F1",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
     borderWidth: 1,
-    borderColor: "#F7F6F1",
+    borderColor: "#EEECE6",
     ...Platform.select({
       ios: {
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.03,
+        shadowOpacity: 0.04,
         shadowRadius: 4,
       },
       android: {
         elevation: 1,
       },
       web: {
-        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.02)",
+        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.03)",
       },
     }),
   },
   detailLabel: {
-    fontSize: isMobile ? 8 : 10,
-    color: "#A6A6A6",
+    fontSize: isMobile ? 9 : 11,
+    color: "#B0AFA9",
     fontWeight: "700",
-    letterSpacing: 0.5,
-    marginBottom: 2,
+    letterSpacing: 0.6,
+    marginBottom: 3,
+    textTransform: "uppercase",
   },
   detailValue: {
-    fontSize: isMobile ? 13 : 15,
+    fontSize: isMobile ? 14 : 16,
     color: "#1E1E1D",
     fontWeight: "700",
   },

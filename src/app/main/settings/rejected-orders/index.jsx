@@ -204,6 +204,8 @@ export default function RejectedOrdersPage() {
                 <FontAwesome name="ban" size={18} color="#777265" style={globalStyles.headerPillIcon} />
                 <Text style={globalStyles.headerPillText}>Rejected Orders</Text>
               </View>
+
+              <View style={globalStyles.headerPillRightSpacer} />
             </View>
           }
           data={error ? [] : orders}

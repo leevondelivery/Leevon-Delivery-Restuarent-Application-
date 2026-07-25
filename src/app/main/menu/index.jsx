@@ -15,6 +15,14 @@ const getApiUrl = () => {
 
 const API_URL = getApiUrl();
 
+const DEMO_MENU_ITEMS = [
+  { _id: "demo_item_1", itemName: "Chicken Biryani", price: 250, itemStatus: true },
+  { _id: "demo_item_2", itemName: "Paneer Butter Masala", price: 220, itemStatus: true },
+  { _id: "demo_item_3", itemName: "Butter Naan", price: 40, itemStatus: true },
+  { _id: "demo_item_4", itemName: "Veg Fried Rice", price: 180, itemStatus: true },
+  { _id: "demo_item_5", itemName: "Mango Lassi", price: 80, itemStatus: false },
+];
+
 export default function MyMenuPage() {
   const [restId, setRestId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -39,15 +47,30 @@ export default function MyMenuPage() {
   }, []);
 
   const fetchItems = async (id) => {
+    if (id === "demo_rest_101") {
+      setItems(DEMO_MENU_ITEMS);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       console.log(`Fetching items for restaurantId: ${id} from ${API_URL}/itemstatus/${id}`);
       const res = await fetch(`${API_URL}/itemstatus/${id}`);
       if (res.ok) {
         const data = await res.json();
-        if (data.success) {
-          setItems(data.items || []);
+        let fetchedItems = [];
+        if (Array.isArray(data)) {
+          fetchedItems = data;
+        } else if (data && Array.isArray(data.items)) {
+          fetchedItems = data.items;
+        } else if (data && Array.isArray(data.data)) {
+          fetchedItems = data.data;
+        } else if (data && Array.isArray(data.menu)) {
+          fetchedItems = data.menu;
         }
+
+        setItems(fetchedItems);
       }
     } catch (error) {
       console.error("Error fetching items:", error);
@@ -57,14 +80,21 @@ export default function MyMenuPage() {
   };
 
   const toggleItemStatus = async (item) => {
-    const newStatus = !item.itemStatus;
+    const itemId = item._id || item.id || item.itemId;
+    const currentStatus = item.itemStatus !== undefined ? Boolean(item.itemStatus) : true;
+    const newStatus = !currentStatus;
     
     // Optimistic update
     setItems((prevItems) =>
-      prevItems.map((i) =>
-        i._id === item._id ? { ...i, itemStatus: newStatus } : i
-      )
+      prevItems.map((i) => {
+        const iId = i._id || i.id || i.itemId;
+        return iId === itemId ? { ...i, itemStatus: newStatus } : i;
+      })
     );
+
+    if (restId === "demo_rest_101") {
+      return; // Local state updated for demo mode
+    }
 
     try {
       const res = await fetch(`${API_URL}/toggle-itemstatus`, {
@@ -73,31 +103,37 @@ export default function MyMenuPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          itemId: item._id,
+          itemId: itemId,
           itemStatus: newStatus,
+          restId: restId,
         }),
       });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        console.error("Failed to update status on server:", data.message);
+        console.error("Failed to update status on server:", data?.message);
         // Revert
         setItems((prevItems) =>
-          prevItems.map((i) =>
-            i._id === item._id ? { ...i, itemStatus: item.itemStatus } : i
-          )
+          prevItems.map((i) => {
+            const iId = i._id || i.id || i.itemId;
+            return iId === itemId ? { ...i, itemStatus: currentStatus } : i;
+          })
         );
       }
     } catch (error) {
       console.error("Network error toggling item status:", error);
       // Revert
       setItems((prevItems) =>
-        prevItems.map((i) =>
-          i._id === item._id ? { ...i, itemStatus: item.itemStatus } : i
-        )
+        prevItems.map((i) => {
+          const iId = i._id || i.id || i.itemId;
+          return iId === itemId ? { ...i, itemStatus: currentStatus } : i;
+        })
       );
     }
   };
+
+  // Filter items: show items unless explicitly marked itemtodisplayintherestuarentapp === false
+  const visibleItems = items.filter((item) => item.itemtodisplayintherestuarentapp !== false);
 
   return (
     <View style={globalStyles.mainContainer}>
@@ -121,6 +157,8 @@ export default function MyMenuPage() {
               <FontAwesome name="cutlery" size={18} color="#777265" style={globalStyles.headerPillIcon} />
               <Text style={globalStyles.headerPillText}>My Menu</Text>
             </View>
+
+            <View style={globalStyles.headerPillRightSpacer} />
           </View>
 
           {/* Content Area */}
@@ -130,20 +168,24 @@ export default function MyMenuPage() {
                 <View style={localStyles.loaderContainer}>
                   <ActivityIndicator size="large" color="#1E1E1D" />
                 </View>
-              ) : items.filter((item) => item.itemtodisplayintherestuarentapp === true).length === 0 ? (
+              ) : visibleItems.length === 0 ? (
                 <View style={localStyles.emptyContainer}>
                   <FontAwesome name="info-circle" size={40} color="#777265" style={{ marginBottom: 12 }} />
                   <Text style={localStyles.emptyText}>No menu items found for this restaurant.</Text>
                 </View>
               ) : (
-                items
-                  .filter((item) => item.itemtodisplayintherestuarentapp === true)
-                  .map((item) => (
-                    <View key={item._id} style={localStyles.capsuleRow}>
+                visibleItems.map((item, index) => {
+                  const key = item._id || item.id || `item-${index}`;
+                  const itemName = item.itemName || item.name || item.title || "Unnamed Item";
+                  const price = item.price !== undefined ? item.price : (item.itemPrice || 0);
+                  const isAvailable = item.itemStatus !== undefined ? Boolean(item.itemStatus) : true;
+
+                  return (
+                    <View key={key} style={localStyles.capsuleRow}>
                       <View style={localStyles.rowLeft}>
                         <View style={localStyles.itemInfo}>
-                          <Text style={localStyles.itemNameText} numberOfLines={1}>{item.itemName}</Text>
-                          <Text style={localStyles.itemPriceText}>₹ {item.price}</Text>
+                          <Text style={localStyles.itemNameText} numberOfLines={1}>{itemName}</Text>
+                          <Text style={localStyles.itemPriceText}>₹ {price}</Text>
                         </View>
                       </View>
                       
@@ -156,13 +198,14 @@ export default function MyMenuPage() {
                       >
                         <View style={[
                           localStyles.switchTrack,
-                          item.itemStatus ? localStyles.switchTrackOn : localStyles.switchTrackOff
+                          isAvailable ? localStyles.switchTrackOn : localStyles.switchTrackOff
                         ]}>
                           <View style={localStyles.switchKnob} />
                         </View>
                       </Pressable>
                     </View>
-                  ))
+                  );
+                })
               )}
             </View>
           </View>
