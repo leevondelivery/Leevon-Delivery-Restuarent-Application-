@@ -30,7 +30,7 @@ export function OrdersProvider({ children }) {
 
       if (storedRestId === "demo_rest_101") {
         setOrders([]);
-        setIncomingCount(1); // Demo mock order
+        setIncomingCount(1); // Demo mock
         setError(null);
         setLoading(false);
         return;
