@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "118715949536",
-    "project_id": "realdel-f964c",
-    "storage_bucket": "realdel-f964c.firebasestorage.app"
+    "project_number": "549037342596",
+    "project_id": "leevon-delivery-llp-signin-otp",
+    "storage_bucket": "leevon-delivery-llp-signin-otp.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:118715949536:android:0e3dc4181ac866ee548b85",
+        "mobilesdk_app_id": "1:549037342596:android:d73b02f1e157a8f28167d1",
         "android_client_info": {
           "package_name": "com.Leevon.restuarentapp"
         }
       },
       "oauth_client": [
         {
-          "client_id": "118715949536-hc7qp9351r7eacp8fsg3oep3u5mba9gc.apps.googleusercontent.com",
+          "client_id": "549037342596-kkd837btqfu8dfprgtupmpprmiarc5e7.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCwH0hiNwJK8Y6coTWHB4-YUnbm5TCzpD0"
+          "current_key": "AIzaSyCt1Vcc11l07gBKpSwdmqz_1d3Kj_hs3VU"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "118715949536-hc7qp9351r7eacp8fsg3oep3u5mba9gc.apps.googleusercontent.com",
+              "client_id": "549037342596-kkd837btqfu8dfprgtupmpprmiarc5e7.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
@@ -36,27 +36,35 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:118715949536:android:b4038b8b57714990548b85",
+        "mobilesdk_app_id": "1:549037342596:android:962c4645c029cd0f8167d1",
         "android_client_info": {
-          "package_name": "com.deliveryboy.notification"
+          "package_name": "com.leevon.delivery"
         }
       },
       "oauth_client": [
         {
-          "client_id": "118715949536-hc7qp9351r7eacp8fsg3oep3u5mba9gc.apps.googleusercontent.com",
+          "client_id": "549037342596-1d0at7iq171g4ptsqhb0a3k764e745bj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.leevon.delivery",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "549037342596-kkd837btqfu8dfprgtupmpprmiarc5e7.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCwH0hiNwJK8Y6coTWHB4-YUnbm5TCzpD0"
+          "current_key": "AIzaSyCt1Vcc11l07gBKpSwdmqz_1d3Kj_hs3VU"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "118715949536-hc7qp9351r7eacp8fsg3oep3u5mba9gc.apps.googleusercontent.com",
+              "client_id": "549037342596-kkd837btqfu8dfprgtupmpprmiarc5e7.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
@@ -65,56 +73,35 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:118715949536:android:0135c97d6e135991548b85",
+        "mobilesdk_app_id": "1:549037342596:android:31ae074ef10672b78167d1",
         "android_client_info": {
-          "package_name": "com.leevon.deliveryboy"
+          "package_name": "com.leevondelivery.customer"
         }
       },
       "oauth_client": [
         {
-          "client_id": "118715949536-hc7qp9351r7eacp8fsg3oep3u5mba9gc.apps.googleusercontent.com",
+          "client_id": "549037342596-pl94og50usborsvs9j4jaob8hqaoimkd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.leevondelivery.customer",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "549037342596-kkd837btqfu8dfprgtupmpprmiarc5e7.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCwH0hiNwJK8Y6coTWHB4-YUnbm5TCzpD0"
+          "current_key": "AIzaSyCt1Vcc11l07gBKpSwdmqz_1d3Kj_hs3VU"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "118715949536-hc7qp9351r7eacp8fsg3oep3u5mba9gc.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:118715949536:android:e6e2acb4f08d4fd0548b85",
-        "android_client_info": {
-          "package_name": "com.sai"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "118715949536-hc7qp9351r7eacp8fsg3oep3u5mba9gc.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyCwH0hiNwJK8Y6coTWHB4-YUnbm5TCzpD0"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "118715949536-hc7qp9351r7eacp8fsg3oep3u5mba9gc.apps.googleusercontent.com",
+              "client_id": "549037342596-kkd837btqfu8dfprgtupmpprmiarc5e7.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
