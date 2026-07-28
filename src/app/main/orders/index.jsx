@@ -5,14 +5,13 @@ import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
-  Modal,
   Platform,
   Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useOrders } from "../../../context/OrdersContext";
@@ -27,7 +26,7 @@ const getApiUrl = () => {
 const API_URL = getApiUrl();
 
 // HTML receipt print template matching the mockup exactly
-const generateInvoiceHtml = (order, address = "None", fssai = "None") => {
+const generateInvoiceHtml = (order, address = "None", fssai = "None", commission = 0) => {
   const formatPrintDate = (dateStr) => {
     if (!dateStr) return "N/A";
     try {
@@ -48,22 +47,31 @@ const generateInvoiceHtml = (order, address = "None", fssai = "None") => {
     }
   };
 
-  const totalAmount = order.totalPrice || order.grandTotal || 0;
-
+  // Calculate totals using after-commission prices
   const itemRowsHtml = Array.isArray(order.items)
     ? order.items
       .map((foodItem) => {
-        const itemPrice = foodItem.price || 0;
+        const originalPrice = foodItem.price || 0;
+        const discountedPrice = originalPrice * (1 - commission / 100);
+        const lineTotal = discountedPrice * (foodItem.quantity || 1);
         return `
             <tr class="item-row">
               <td class="col-item">${foodItem.name}</td>
               <td class="col-qty">${foodItem.quantity}</td>
-              <td class="col-price">₹${itemPrice.toFixed(2)}</td>
+              <td class="col-price">₹${discountedPrice.toFixed(2)}</td>
             </tr>
           `;
       })
       .join("")
     : "";
+
+  // Grand total = sum of (discounted price × qty) for all items
+  const totalAmount = Array.isArray(order.items)
+    ? order.items.reduce((sum, foodItem) => {
+        const discountedPrice = (foodItem.price || 0) * (1 - commission / 100);
+        return sum + discountedPrice * (foodItem.quantity || 1);
+      }, 0).toFixed(2)
+    : (order.totalPrice || order.grandTotal || 0);
 
   return `
     <!DOCTYPE html>
@@ -222,7 +230,7 @@ export default function AcceptedOrdersPage() {
 
   const handleGenerateInvoice = async (order) => {
     try {
-      const html = generateInvoiceHtml(order, restaurantAddress, restaurantFssai);
+      const html = generateInvoiceHtml(order, restaurantAddress, restaurantFssai, commission);
       await Print.printAsync({
         html,
       });
@@ -402,6 +410,16 @@ export default function AcceptedOrdersPage() {
 
             {/* FIXED CARD FRAME */}
             <View style={localStyles.invoiceCardFrame}>
+              {/* ✕ Close button floating at top-right corner of the frame */}
+              <Pressable
+                onPress={() => setSelectedOrderForInvoice(null)}
+                style={({ pressed }) => [
+                  localStyles.closeFrameButton,
+                  pressed && { opacity: 0.7, transform: [{ scale: 0.9 }] },
+                ]}
+              >
+                <FontAwesome name="times" size={20} color="#1E1E1D" />
+              </Pressable>
               {/* SCROLLABLE RECEIPT AREA (Only the white receipt paper scrolls!) */}
               <ScrollView
                 style={localStyles.receiptScrollViewInsideFrame}
@@ -833,6 +851,29 @@ const localStyles = StyleSheet.create({
     width: "100%",
     alignSelf: "center",
     flexDirection: "column",
+    position: "relative",
+  },
+  closeFrameButton: {
+    position: "absolute",
+    top: -16,
+    right: 10,
+    zIndex: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.12,
+        shadowRadius: 4,
+      },
+      android: { elevation: 3 },
+      web: { boxShadow: "0 2px 6px rgba(0,0,0,0.12)", cursor: "pointer" },
+    }),
   },
   receiptScrollViewInsideFrame: {
     flexGrow: 0,

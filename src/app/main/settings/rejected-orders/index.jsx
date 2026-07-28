@@ -3,6 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useEffect, useState, useCallback } from "react";
 import {
+  BackHandler,
   FlatList,
   Platform,
   Pressable,
@@ -85,6 +86,15 @@ export default function RejectedOrdersPage() {
   useEffect(() => {
     fetchRejectedOrders();
   }, [fetchRejectedOrders]);
+
+  // Intercept Android hardware back button → go to Settings
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
+      router.replace("/main/settings");
+      return true;
+    });
+    return () => backHandler.remove();
+  }, []);
 
   const toggleExpandOrder = (orderId) => {
     setExpandedOrders((prev) => ({

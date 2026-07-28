@@ -5,6 +5,7 @@ import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
+  BackHandler,
   FlatList,
   Linking,
   Modal,
@@ -30,7 +31,7 @@ const getApiUrl = () => {
 const API_URL = getApiUrl();
 
 // HTML receipt print template matching the mockup exactly
-const generateInvoiceHtml = (order, address = "None", fssai = "None") => {
+const generateInvoiceHtml = (order, address = "None", fssai = "None", commission = 0) => {
   const formatPrintDate = (dateStr) => {
     if (!dateStr) return "N/A";
     try {
@@ -51,22 +52,30 @@ const generateInvoiceHtml = (order, address = "None", fssai = "None") => {
     }
   };
 
-  const totalAmount = order.totalPrice || order.grandTotal || 0;
-
+  // Calculate totals using after-commission prices
   const itemRowsHtml = Array.isArray(order.items)
     ? order.items
       .map((foodItem) => {
-        const itemPrice = foodItem.price || 0;
+        const originalPrice = foodItem.price || 0;
+        const discountedPrice = originalPrice * (1 - commission / 100);
         return `
             <tr class="item-row">
               <td class="col-item">${foodItem.name}</td>
               <td class="col-qty">${foodItem.quantity}</td>
-              <td class="col-price">₹${itemPrice.toFixed(2)}</td>
+              <td class="col-price">₹${discountedPrice.toFixed(2)}</td>
             </tr>
           `;
       })
       .join("")
     : "";
+
+  // Grand total = sum of (discounted price × qty) for all items
+  const totalAmount = Array.isArray(order.items)
+    ? order.items.reduce((sum, foodItem) => {
+        const discountedPrice = (foodItem.price || 0) * (1 - commission / 100);
+        return sum + discountedPrice * (foodItem.quantity || 1);
+      }, 0).toFixed(2)
+    : (order.totalPrice || order.grandTotal || 0);
 
   return `
     <!DOCTYPE html>
@@ -199,6 +208,7 @@ export default function OrdersPage() {
   const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState(null);
   const [restaurantAddress, setRestaurantAddress] = useState("None");
   const [restaurantFssai, setRestaurantFssai] = useState("None");
+  const [commission, setCommission] = useState(12);
 
   const fetchOrders = useCallback(async (showPullIndicator = false) => {
     if (showPullIndicator) {
@@ -247,19 +257,33 @@ export default function OrdersPage() {
 
   useEffect(() => {
     fetchOrders();
-    // Fetch address and fssai details
+    // Fetch address, fssai, and commission details
     const getRestaurantDetails = async () => {
       try {
         const storedAddress = await AsyncStorage.getItem("address");
         const storedFssai = await AsyncStorage.getItem("fssai");
+        const storedCommission = await AsyncStorage.getItem("commission");
         if (storedAddress) setRestaurantAddress(storedAddress);
         if (storedFssai) setRestaurantFssai(storedFssai);
+        if (storedCommission) {
+          const parsed = parseFloat(storedCommission);
+          if (!isNaN(parsed)) setCommission(parsed);
+        }
       } catch (err) {
         console.error("Error reading restaurant details from storage:", err);
       }
     };
     getRestaurantDetails();
   }, [fetchOrders]);
+
+  // Intercept Android hardware back button → go to Settings
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
+      router.replace("/main/settings");
+      return true;
+    });
+    return () => backHandler.remove();
+  }, []);
 
   const toggleExpandOrder = (orderId) => {
     setExpandedOrders((prev) => ({
@@ -277,7 +301,7 @@ export default function OrdersPage() {
 
   const handleGenerateInvoice = async (order) => {
     try {
-      const html = generateInvoiceHtml(order, restaurantAddress, restaurantFssai);
+      const html = generateInvoiceHtml(order, restaurantAddress, restaurantFssai, commission);
       await Print.printAsync({
         html,
       });
@@ -327,7 +351,14 @@ export default function OrdersPage() {
 
   const renderOrderItem = ({ item }) => {
     const isExpanded = expandedOrders[item._id];
-    const originalTotal = item.totalPrice || item.grandTotal || 0;
+
+    // Calculate after-commission total from items
+    const afterCommissionTotal = Array.isArray(item.items)
+      ? item.items.reduce((sum, foodItem) => {
+          const discounted = (foodItem.price || 0) * (1 - commission / 100);
+          return sum + discounted * (foodItem.quantity || 1);
+        }, 0)
+      : (item.totalPrice || item.grandTotal || 0);
 
     return (
       <View style={localStyles.orderCard}>
@@ -393,10 +424,10 @@ export default function OrdersPage() {
             <Text style={localStyles.headerColPrice}>PRICE</Text>
           </View>
 
-          {/* Ordered Items List */}
+          {/* Ordered Items List — after-commission prices */}
           {Array.isArray(item.items) &&
             item.items.map((foodItem, index) => {
-              const originalPrice = foodItem.price || 0;
+              const discountedPrice = (foodItem.price || 0) * (1 - commission / 100);
               return (
                 <View key={foodItem._id || index} style={localStyles.foodItemRow}>
                   <View style={localStyles.foodItemColName}>
@@ -406,7 +437,7 @@ export default function OrdersPage() {
                     <Text style={localStyles.foodItemQty}>x{foodItem.quantity}</Text>
                   </View>
                   <View style={localStyles.foodItemColPrice}>
-                    <Text style={localStyles.discountedPriceText}>₹{originalPrice}</Text>
+                    <Text style={localStyles.discountedPriceText}>₹{discountedPrice.toFixed(2)}</Text>
                   </View>
                 </View>
               );
@@ -415,11 +446,11 @@ export default function OrdersPage() {
           {/* Solid divider line */}
           <View style={localStyles.dividerSolid} />
 
-          {/* Total Row */}
+          {/* Total Row — after-commission */}
           <View style={localStyles.totalRow}>
             <Text style={localStyles.totalLabelText}>Total</Text>
             <View style={{ alignItems: "flex-end" }}>
-              <Text style={localStyles.totalValueText}>₹{originalTotal}</Text>
+              <Text style={localStyles.totalValueText}>₹{afterCommissionTotal.toFixed(2)}</Text>
             </View>
           </View>
         </View>
@@ -475,6 +506,16 @@ export default function OrdersPage() {
 
             {/* FIXED CARD FRAME */}
             <View style={localStyles.invoiceCardFrame}>
+              {/* ✕ Close button floating at top-right corner of the frame */}
+              <Pressable
+                onPress={() => setSelectedOrderForInvoice(null)}
+                style={({ pressed }) => [
+                  localStyles.closeFrameButton,
+                  pressed && { opacity: 0.7, transform: [{ scale: 0.9 }] },
+                ]}
+              >
+                <FontAwesome name="times" size={20} color="#1E1E1D" />
+              </Pressable>
               {/* SCROLLABLE RECEIPT AREA (Only the white receipt paper scrolls!) */}
               <ScrollView
                 style={localStyles.receiptScrollViewInsideFrame}
@@ -526,10 +567,10 @@ export default function OrdersPage() {
                     ------------------------------------------
                   </Text>
 
-                  {/* Food Items List */}
+                  {/* Food Items List — after-commission prices */}
                   {Array.isArray(selectedOrderForInvoice.items) &&
                     selectedOrderForInvoice.items.map((foodItem, index) => {
-                      const discountedPrice = foodItem.price || 0;
+                      const discountedPrice = (foodItem.price || 0) * (1 - commission / 100);
                       return (
                         <View key={foodItem._id || index} style={localStyles.receiptItemRow}>
                           <Text style={[localStyles.monoText, localStyles.receiptItemName]}>
@@ -550,11 +591,15 @@ export default function OrdersPage() {
                     ------------------------------------------
                   </Text>
 
-                  {/* Grand Total */}
+                  {/* Grand Total — after commission */}
                   <View style={localStyles.receiptTotalRow}>
                     <Text style={[localStyles.monoText, localStyles.receiptTotalLabel]}>Grand Total</Text>
                     <Text style={[localStyles.monoText, localStyles.receiptTotalValue]}>
-                      ₹{selectedOrderForInvoice.totalPrice || selectedOrderForInvoice.grandTotal || 0}
+                      ₹{Array.isArray(selectedOrderForInvoice.items)
+                        ? selectedOrderForInvoice.items.reduce((sum, fi) => {
+                            return sum + (fi.price || 0) * (1 - commission / 100) * (fi.quantity || 1);
+                          }, 0).toFixed(2)
+                        : (selectedOrderForInvoice.totalPrice || selectedOrderForInvoice.grandTotal || 0)}
                     </Text>
                   </View>
 
@@ -993,6 +1038,29 @@ const localStyles = StyleSheet.create({
     width: "100%",
     alignSelf: "center",
     flexDirection: "column",
+    position: "relative",
+  },
+  closeFrameButton: {
+    position: "absolute",
+    top: -16,
+    right: 10,
+    zIndex: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.12,
+        shadowRadius: 4,
+      },
+      android: { elevation: 3 },
+      web: { boxShadow: "0 2px 6px rgba(0,0,0,0.12)", cursor: "pointer" },
+    }),
   },
   receiptScrollViewInsideFrame: {
     flexGrow: 0,

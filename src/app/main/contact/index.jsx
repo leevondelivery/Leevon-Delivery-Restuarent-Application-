@@ -1,6 +1,7 @@
 import { FontAwesome } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect } from "react";
+import { BackHandler, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { styles as globalStyles } from "../../../styles/main.styles";
@@ -8,6 +9,15 @@ import { styles as globalStyles } from "../../../styles/main.styles";
 const isMobile = Platform.OS === "ios" || Platform.OS === "android";
 
 export default function ContactUsPage() {
+  // Intercept Android hardware back button → go to Settings
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
+      router.replace("/main/settings");
+      return true;
+    });
+    return () => backHandler.remove();
+  }, []);
+
   const handlePressPhone = () => {
     Linking.openURL("tel:+917207610235").catch((err) =>
       console.error("Failed to dial phone number:", err)

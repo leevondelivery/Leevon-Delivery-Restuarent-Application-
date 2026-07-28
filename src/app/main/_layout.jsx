@@ -200,7 +200,7 @@ export default function MainLayout() {
   );
 }
 
-function TabItem({ isFocused, iconName, onPress, showBadge }) {
+function TabItem({ isFocused, iconName, onPress, badgeCount }) {
   const [animatedValue] = useState(() => new Animated.Value(isFocused ? 1 : 0));
 
   useEffect(() => {
@@ -240,6 +240,8 @@ function TabItem({ isFocused, iconName, onPress, showBadge }) {
     outputRange: [1, 1.3],
   });
 
+  const displayCount = badgeCount > 99 ? "99+" : String(badgeCount);
+
   return (
     <Pressable onPress={onPress}>
       <Animated.View style={[styles.tabItem, animatedStyle]}>
@@ -250,14 +252,18 @@ function TabItem({ isFocused, iconName, onPress, showBadge }) {
             color="#000000"
           />
         </Animated.View>
-        {showBadge && <View style={styles.badge} />}
+        {badgeCount > 0 && (
+          <View style={[styles.badge, badgeCount > 9 && styles.badgeWide]}>
+            <Text style={styles.badgeText}>{displayCount}</Text>
+          </View>
+        )}
       </Animated.View>
     </Pressable>
   );
 }
 
 function CustomTabBar({ state, descriptors, navigation }) {
-  const { incomingCount } = useOrders();
+  const { incomingCount, orders } = useOrders();
 
   return (
     <View style={styles.container}>
@@ -298,7 +304,12 @@ function CustomTabBar({ state, descriptors, navigation }) {
             iconName = "cog";
           }
 
-          const showBadge = route.name.includes("notifications") && incomingCount > 0;
+          let badgeCount = 0;
+          if (route.name.includes("notifications")) {
+            badgeCount = incomingCount;
+          } else if (route.name.includes("orders")) {
+            badgeCount = orders.length;
+          }
 
           return (
             <TabItem
@@ -306,7 +317,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
               isFocused={isFocused}
               iconName={iconName}
               onPress={onPress}
-              showBadge={showBadge}
+              badgeCount={badgeCount}
             />
           );
         })}
@@ -372,15 +383,31 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: "absolute",
-    right: 0,
-    top: 0,
+    right: -2,
+    top: -2,
     backgroundColor: "#E05638", // brand red color
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
     borderWidth: 2,
     borderColor: "#FFFFFF",
     zIndex: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 3,
+  },
+  badgeWide: {
+    minWidth: 24,
+    borderRadius: 10,
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: "#FFFFFF",
+    fontSize: 9,
+    fontWeight: "800",
+    lineHeight: 11,
+    textAlign: "center",
+    includeFontPadding: false,
   },
 });
 

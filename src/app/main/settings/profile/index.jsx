@@ -2,7 +2,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useEffect, useState, useRef } from "react";
-import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View, Modal, TextInput, ActivityIndicator, Alert, PanResponder } from "react-native";
+import { BackHandler, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View, Modal, TextInput, ActivityIndicator, Alert, PanResponder } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import LogoLoader from "../../../../components/LogoLoader";
@@ -111,6 +111,15 @@ export default function RestaurantProfilePage() {
       }
     };
     fetchProfile();
+  }, []);
+
+  // Intercept Android hardware back button → go to Settings
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
+      router.replace("/main/settings");
+      return true;
+    });
+    return () => backHandler.remove();
   }, []);
 
 

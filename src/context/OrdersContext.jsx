@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Platform, Alert } from "react-native";
+import { Platform } from "react-native";
 import Constants from "expo-constants";
 import { router } from "expo-router";
 import messaging from "../utils/firebaseMessaging";
@@ -115,14 +115,8 @@ export function OrdersProvider({ children }) {
         unsubscribeMessage = messaging().onMessage(async (remoteMessage) => {
           if (isMounted) {
             console.log('Foreground Message received:', remoteMessage);
-            // Refetch orders immediately
+            // Refetch orders immediately — sound is handled by the Notifications page
             fetchOrders(true);
-
-            // Show alert/notification
-            Alert.alert(
-              remoteMessage.notification?.title || 'New Order Alert 🔔',
-              remoteMessage.notification?.body || 'A new order has been received.'
-            );
           }
         });
 
