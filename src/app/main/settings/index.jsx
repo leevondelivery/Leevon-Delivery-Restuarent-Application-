@@ -17,6 +17,7 @@ export default function SettingsPage() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -35,6 +36,7 @@ export default function SettingsPage() {
   }, []);
 
   const handleLogout = async () => {
+    setLoggingOut(true);
     try {
       const restId = await AsyncStorage.getItem("restId");
       if (restId) {
@@ -65,6 +67,8 @@ export default function SettingsPage() {
     } catch (error) {
       console.error("Error clearing session:", error);
       router.replace("/");
+    } finally {
+      setLoggingOut(false);
     }
   };
 
@@ -79,7 +83,7 @@ export default function SettingsPage() {
     );
   };
 
-  if (loading) {
+  if (loading || loggingOut) {
     return (
       <View style={[styles.mainContainer, { justifyContent: "center", alignItems: "center" }]}>
         <LogoLoader />

@@ -1,7 +1,7 @@
 import { FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Print from "expo-print";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
@@ -276,14 +276,25 @@ export default function OrdersPage() {
     getRestaurantDetails();
   }, [fetchOrders]);
 
-  // Intercept Android hardware back button → go to Settings
+  // Reset selected invoice when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      setSelectedOrderForInvoice(null);
+    }, [])
+  );
+
+  // Intercept Android hardware back button
   useEffect(() => {
     const backHandler = BackHandler.addEventListener("hardwareBackPress", () => {
+      if (selectedOrderForInvoice !== null) {
+        setSelectedOrderForInvoice(null);
+        return true;
+      }
       router.replace("/main/settings");
       return true;
     });
     return () => backHandler.remove();
-  }, []);
+  }, [selectedOrderForInvoice]);
 
   const toggleExpandOrder = (orderId) => {
     setExpandedOrders((prev) => ({
@@ -301,13 +312,17 @@ export default function OrdersPage() {
 
   const handleGenerateInvoice = async (order) => {
     try {
+      if (!order) return;
       const html = generateInvoiceHtml(order, restaurantAddress, restaurantFssai, commission);
-      await Print.printAsync({
-        html,
-      });
+      if (Platform.OS === "web") {
+        await Print.printAsync({ html });
+      } else {
+        const { uri } = await Print.printToFileAsync({ html });
+        await Print.printAsync({ uri });
+      }
     } catch (error) {
       console.error("Failed to print invoice:", error);
-      Alert.alert("Print Error", "Could not print or generate the invoice PDF.");
+      Alert.alert("Print Error", `Could not print or generate the invoice PDF.`);
     }
   };
 

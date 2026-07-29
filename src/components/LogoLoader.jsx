@@ -82,8 +82,8 @@ const styles = StyleSheet.create({
     borderRadius: 58,
     borderWidth: 4,
     borderColor: "transparent",
-    borderTopColor: "#B89355", // premium golden color
-    borderLeftColor: "#B89355", // half-ring active golden arc
+    borderTopColor: "#B89355", // premium gold color
+    borderLeftColor: "#B89355", // gold arc
   },
   innerCircle: {
     width: 92,
@@ -108,8 +108,8 @@ const styles = StyleSheet.create({
     }),
   },
   logoImage: {
-    width: 54,
-    height: 54,
+    width: 58,
+    height: 58,
   },
   titleText: {
     fontSize: 18,

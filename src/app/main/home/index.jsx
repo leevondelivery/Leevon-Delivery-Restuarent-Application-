@@ -176,7 +176,10 @@ export default function MainPage() {
     };
   }, [fetchBackendData]);
 
+  const [loggingOut, setLoggingOut] = useState(false);
+
   const handleLogout = async () => {
+    setLoggingOut(true);
     try {
       const restId = await AsyncStorage.getItem("restId");
       if (restId) {
@@ -208,34 +211,34 @@ export default function MainPage() {
     } catch (error) {
       console.error("Error clearing session:", error);
       router.replace("/");
+    } finally {
+      setLoggingOut(false);
     }
   };
 
   const toggleStatus = async () => {
     if (isToggling) return;
-
-    const activeRestId = details.restId !== "N/A" ? details.restId : await AsyncStorage.getItem("restId");
-    if (!activeRestId) return;
-
-    const nextState = !isOpen;
     setIsToggling(true);
 
-    // Toggle internal state and start slide animation
-    setIsOpen(nextState);
+    const nextState = !isOpen;
+
+    // Animate knob immediately for smooth UX
     Animated.timing(animationValue, {
       toValue: nextState ? 1 : 0,
       duration: 250,
       useNativeDriver: false,
     }).start();
 
-    // Send update request to database
-    if (activeRestId === "demo_rest_101") {
-      setIsToggling(false);
-      return;
-    }
-
     try {
-      console.log(`Toggling status to ${nextState} for restaurantId: ${activeRestId}`);
+      const activeRestId = await AsyncStorage.getItem("restId");
+      if (!activeRestId || activeRestId === "demo_rest_101") {
+        setIsOpen(nextState);
+        await AsyncStorage.setItem("isOpenStatus", JSON.stringify(nextState));
+        setIsToggling(false);
+        return;
+      }
+
+      console.log(`Toggling restaurant status to ${nextState} at: ${API_URL}/toggle-status`);
       const res = await fetch(`${API_URL}/toggle-status`, {
         method: "POST",
         headers: {
@@ -263,8 +266,8 @@ export default function MainPage() {
         }).start();
       }
     } catch (error) {
-      console.error("Network error updating status:", error);
-      // Revert state on failure
+      console.error("Error toggling status:", error);
+      // Revert state on error
       setIsOpen(!nextState);
       Animated.timing(animationValue, {
         toValue: !nextState ? 1 : 0,
@@ -286,7 +289,7 @@ export default function MainPage() {
     outputRange: [6, 134], // left offset when closed (6) to open (134)
   });
 
-  if (loading) {
+  if (loading || loggingOut) {
     return (
       <View style={[styles.mainContainer, { justifyContent: "center", alignItems: "center" }]}>
         <LogoLoader />
