@@ -2,6 +2,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { useEffect, useState } from "react";
 import { Animated, AppState, Modal, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import LogoLoader from "../../components/LogoLoader";
 import { isBatteryOptimizationEnabled, requestIgnoreBatteryOptimization } from "../../utils/batteryOptimization";
 import { OrdersProvider, useOrders } from "../../context/OrdersContext";
@@ -264,9 +265,11 @@ function TabItem({ isFocused, iconName, onPress, badgeCount }) {
 
 function CustomTabBar({ state, descriptors, navigation }) {
   const { incomingCount, orders } = useOrders();
+  const insets = useSafeAreaInsets();
+  const bottomMargin = Math.max(insets.bottom + 8, 24);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { bottom: bottomMargin }]}>
       <View style={styles.tabBar}>
         {state.routes.map((route, index) => {
           // Skip the index, settings/profile/index, settings/reviews/index, contact/index, orders-history/index, and menu/index routes from rendering as tabs
