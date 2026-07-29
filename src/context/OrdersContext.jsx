@@ -116,13 +116,6 @@ export function OrdersProvider({ children }) {
         unsubscribeMessage = messaging().onMessage(async (remoteMessage) => {
           if (isMounted) {
             console.log('Foreground Message received:', remoteMessage);
-            if (remoteMessage?.data?.action === 'FORCE_LOGOUT') {
-              console.log('FORCE_LOGOUT received on old device. Cleaning up session and navigating to login.');
-              stopOrderSound();
-              await AsyncStorage.multiRemove(["restId", "address", "lat", "lng"]);
-              router.replace('/');
-              return;
-            }
             // Refetch orders immediately
             fetchOrders(true);
           }
