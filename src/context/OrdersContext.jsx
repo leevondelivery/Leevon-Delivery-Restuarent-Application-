@@ -5,6 +5,7 @@ import Constants from "expo-constants";
 import { router } from "expo-router";
 import messaging from "../utils/firebaseMessaging";
 import { registerForFCMAsync, saveFCMTokenToBackend } from "../utils/notifications";
+import { playOrderSound, stopOrderSound, createNotificationChannel } from "../utils/orderSound";
 
 const OrdersContext = createContext(null);
 
@@ -152,6 +153,20 @@ export function OrdersProvider({ children }) {
       if (unsubscribeNotificationOpened) unsubscribeNotificationOpened();
     };
   }, [fetchOrders]);
+
+  useEffect(() => {
+    createNotificationChannel();
+  }, []);
+
+  useEffect(() => {
+    if (incomingCount > 0) {
+      console.log("Incoming orders pending globally:", incomingCount, "Starting order sound loop.");
+      playOrderSound();
+    } else {
+      console.log("No pending incoming orders globally. Stopping order sound loop.");
+      stopOrderSound();
+    }
+  }, [incomingCount]);
 
   return (
     <OrdersContext.Provider value={{ orders, incomingCount, setIncomingCount, loading, error, refetch: () => fetchOrders(false) }}>

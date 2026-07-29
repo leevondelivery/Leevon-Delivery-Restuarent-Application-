@@ -151,7 +151,7 @@ export default function NotificationsPage() {
       if (ordersCountRef.current > 0) {
         triggerPlay();
       }
-    }, 10000);
+    }, 5000);
   }, [player, triggerPlay]);
 
   // Listener for playback status updates from native player (completion & loaded triggers)
@@ -163,7 +163,7 @@ export default function NotificationsPage() {
 
       // Handle when audio finishes playing completely
       if (eventStatus.didJustFinish) {
-        console.log("Audio finished playing completely. Delaying next repeat by 10s.");
+        console.log("Audio finished playing completely. Delaying next repeat by 5s.");
         isWaitingRef.current = true;
         if (timeoutIdRef.current) {
           clearTimeout(timeoutIdRef.current);
@@ -173,7 +173,7 @@ export default function NotificationsPage() {
           if (ordersCountRef.current > 0) {
             triggerPlay();
           }
-        }, 10000);
+        }, 5000);
         return;
       }
 
