@@ -125,7 +125,7 @@ export function OrdersProvider({ children }) {
         unsubscribeNotificationOpened = messaging().onNotificationOpenedApp((remoteMessage) => {
           if (isMounted) {
             console.log('Notification caused app to open from background:', remoteMessage);
-            router.push('/main/orders');
+            router.push('/main/notifications');
           }
         });
 
@@ -135,7 +135,7 @@ export function OrdersProvider({ children }) {
           .then((remoteMessage) => {
             if (remoteMessage && isMounted) {
               console.log('Notification caused app to open from quit state:', remoteMessage);
-              router.push('/main/orders');
+              router.push('/main/notifications');
             }
           });
 
