@@ -22,7 +22,7 @@ import LogoLoader from "../../../components/LogoLoader";
 import { styles as globalStyles } from "../../../styles/main.styles";
 
 const getApiUrl = () => {
-  return "https://restuarentbackend-production.up.railway.app";
+  return "https://restuarentbackend.onrender.com";
 };
 
 const API_URL = getApiUrl();

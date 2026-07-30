@@ -58,7 +58,7 @@ export async function saveFCMTokenToBackend(restId, token) {
     const payload = { restId, fcmToken: token || "" };
     console.log(`Sending FCM token to backend for restId: ${restId}, token: ${token ? 'exists' : 'empty (deleting)'}`);
 
-    const response = await fetch('https://restuarentbackend-production.up.railway.app/update-fcm', {
+    const response = await fetch('https://restuarentbackend.onrender.com/update-fcm', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

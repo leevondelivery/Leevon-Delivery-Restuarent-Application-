@@ -18,7 +18,7 @@ import { styles as globalStyles } from "../../../../styles/main.styles";
 import LogoLoader from "../../../../components/LogoLoader";
 
 const getApiUrl = () => {
-  return "https://restuarentbackend-production.up.railway.app";
+  return "https://restuarentbackend.onrender.com";
 };
 
 const API_URL = getApiUrl();

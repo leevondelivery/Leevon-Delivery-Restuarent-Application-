@@ -10,7 +10,7 @@ import { styles } from "../../../styles/main.styles";
 import { checkNotificationPermission, deleteFCMTokenOnBackend, requestNotificationPermission } from "../../../utils/notifications";
 
 const getApiUrl = () => {
-  return "https://restuarentbackend-production.up.railway.app";
+  return "https://restuarentbackend.onrender.com";
 };
 
 const API_URL = getApiUrl();

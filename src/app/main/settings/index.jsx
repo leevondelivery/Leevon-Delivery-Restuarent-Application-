@@ -159,6 +159,21 @@ export default function SettingsPage() {
               <FontAwesome name="chevron-right" size={17} color="#1E1E1D" />
             </Pressable>
 
+            {/* Payments History */}
+            <Pressable
+              onPress={() => router.push("/main/settings/payments-history")}
+              style={({ pressed }) => [
+                styles.actionItem,
+                pressed && { opacity: 0.95, transform: [{ scale: 0.99 }] }
+              ]}
+            >
+              <View style={styles.actionLeftRow}>
+                <FontAwesome name="credit-card" size={20} color="#1E1E1D" style={styles.actionIcon} />
+                <Text style={styles.actionText}>Payments History</Text>
+              </View>
+              <FontAwesome name="chevron-right" size={17} color="#1E1E1D" />
+            </Pressable>
+
             {/* My Reviews */}
             <Pressable
               onPress={() => router.push("/main/settings/reviews")}

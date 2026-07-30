@@ -10,7 +10,7 @@ import { playOrderSound, stopOrderSound, createNotificationChannel } from "../ut
 const OrdersContext = createContext(null);
 
 const getApiUrl = () => {
-  return "https://restuarentbackend-production.up.railway.app";
+  return "https://restuarentbackend.onrender.com";
 };
 
 const API_URL = getApiUrl();

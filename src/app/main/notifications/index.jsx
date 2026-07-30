@@ -20,7 +20,7 @@ import LogoLoader from "../../../components/LogoLoader";
 import { useOrders } from "../../../context/OrdersContext";
 
 const getApiUrl = () => {
-  return "https://restuarentbackend-production.up.railway.app";
+  return "https://restuarentbackend.onrender.com";
 };
 
 const API_URL = getApiUrl();

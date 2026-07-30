@@ -151,6 +151,13 @@ export default function MainLayout() {
           href: null,
         }}
       />
+      {/* Hide the payments history screen from the tabbar list */}
+      <Tabs.Screen
+        name="settings/payments-history/index"
+        options={{
+          href: null,
+        }}
+      />
       {/* Hide the contact us screen from the tabbar list */}
       <Tabs.Screen
         name="contact/index"
@@ -278,6 +285,7 @@ function CustomTabBar({ state, descriptors, navigation }) {
             route.name === "settings/profile/index" ||
             route.name === "settings/reviews/index" ||
             route.name === "settings/rejected-orders/index" ||
+            route.name === "settings/payments-history/index" ||
             route.name === "contact/index" ||
             route.name === "orders-history/index" ||
             route.name === "menu/index"

@@ -13,6 +13,7 @@
     "@react-native-firebase/app": "^18.9.0",
     "@react-native-firebase/messaging": "^18.9.0",
     "ansi-escapes": "^7.3.0",
+    "cors": "^2.8.6",
     "expo": "~56.0.0",
     "expo-audio": "~56.0.12",
     "expo-constants": "~56.0.17",

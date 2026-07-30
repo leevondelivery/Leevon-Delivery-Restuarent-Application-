@@ -20,7 +20,7 @@ import { styles } from "../styles/index.styles";
 import { registerForFCMAsync, saveFCMTokenToBackend } from "../utils/notifications";
 
 const getApiUrl = () => {
-  return "https://restuarentbackend-production.up.railway.app";
+  return "https://restuarentbackend.onrender.com";
 };
 
 const API_URL = getApiUrl();
