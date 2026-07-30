@@ -225,6 +225,8 @@ export default function NotificationsPage() {
   const [rejectingOrderId, setRejectingOrderId] = useState(null);
   const [processingOrderId, setProcessingOrderId] = useState(null);
   const [processingType, setProcessingType] = useState(null);
+  const [prepModalVisible, setPrepModalVisible] = useState(false);
+  const [selectedOrderForPrep, setSelectedOrderForPrep] = useState(null);
 
   const fetchIncomingOrders = useCallback(async (showPullIndicator = false, isSilent = false) => {
     if (showPullIndicator) {
@@ -331,7 +333,20 @@ export default function NotificationsPage() {
     }
   };
 
-  const handleAccept = async (order) => {
+  const openPrepModal = (order) => {
+    setSelectedOrderForPrep(order);
+    setPrepModalVisible(true);
+  };
+
+  const confirmAcceptWithPrepTime = async (preparationMinutes) => {
+    if (!selectedOrderForPrep) return;
+    const orderToAccept = selectedOrderForPrep;
+    setPrepModalVisible(false);
+    setSelectedOrderForPrep(null);
+    await handleAccept(orderToAccept, preparationMinutes);
+  };
+
+  const handleAccept = async (order, preparationTime = 10) => {
     const processingId = order._id || order.orderId;
     setProcessingOrderId(processingId);
     setProcessingType("accept");
@@ -357,10 +372,12 @@ export default function NotificationsPage() {
         orderId: order._id, // MongoDB _id
         rest: address,
         restaurantLocation: { lat, lng },
-        razorpayOrderId: order.razorpayOrderId || "N/A"
+        razorpayOrderId: order.razorpayOrderId || "N/A",
+        preparationTime: preparationTime,
+        acceptedAt: new Date().toISOString()
       };
 
-      console.log(`Accepting order: ${order.orderId} at ${API_URL}/accept-order`);
+      console.log(`Accepting order: ${order.orderId} with prep time ${preparationTime}m at ${API_URL}/accept-order`);
       const res = await fetch(`${API_URL}/accept-order`, {
         method: "POST",
         headers: {
@@ -513,7 +530,7 @@ export default function NotificationsPage() {
           {/* Accept / Reject Buttons */}
           <View style={localStyles.buttonsContainer}>
             <Pressable
-              onPress={() => handleAccept(item)}
+              onPress={() => openPrepModal(item)}
               style={({ pressed }) => [
                 localStyles.actionButton,
                 localStyles.acceptButton,
@@ -596,6 +613,55 @@ export default function NotificationsPage() {
           }
         />
       </SafeAreaView>
+
+      {/* Preparation Time Selection Modal */}
+      <Modal
+        visible={prepModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setPrepModalVisible(false)}
+      >
+        <View style={localStyles.modalOverlay}>
+          <View style={localStyles.prepModalCard}>
+            <View style={localStyles.prepModalHeader}>
+              <FontAwesome name="clock-o" size={24} color="#E05638" style={{ marginRight: 10 }} />
+              <Text style={localStyles.prepModalTitle}>Preparation Time</Text>
+            </View>
+            <Text style={localStyles.prepModalSubtitle}>
+              Select estimated preparation time for delivery boy pickup:
+            </Text>
+
+            <View style={localStyles.prepGrid}>
+              {[5, 10, 20, 30].map((mins) => (
+                <Pressable
+                  key={mins}
+                  onPress={() => confirmAcceptWithPrepTime(mins)}
+                  style={({ pressed }) => [
+                    localStyles.prepOptionButton,
+                    pressed && { opacity: 0.8, transform: [{ scale: 0.96 }] },
+                  ]}
+                >
+                  <Text style={localStyles.prepOptionNumber}>{mins}</Text>
+                  <Text style={localStyles.prepOptionLabel}>MINUTES</Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <Pressable
+              onPress={() => {
+                setPrepModalVisible(false);
+                setSelectedOrderForPrep(null);
+              }}
+              style={({ pressed }) => [
+                localStyles.prepCancelButton,
+                pressed && { opacity: 0.85, transform: [{ scale: 0.98 }] },
+              ]}
+            >
+              <Text style={localStyles.prepCancelText}>CANCEL</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
 
       {/* Reject Order Confirmation Modal */}
       <Modal
@@ -978,5 +1044,121 @@ const localStyles = StyleSheet.create({
         userSelect: "none",
       },
     }),
+  },
+  prepModalCard: {
+    width: "88%",
+    maxWidth: 420,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 24,
+    alignItems: "center",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.15,
+        shadowRadius: 20,
+      },
+      android: {
+        elevation: 8,
+      },
+      web: {
+        boxShadow: "0 12px 32px rgba(0, 0, 0, 0.15)",
+      },
+    }),
+  },
+  prepModalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  prepModalTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#1E1E1D",
+  },
+  prepModalSubtitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#777265",
+    textAlign: "center",
+    marginBottom: 20,
+    paddingHorizontal: 8,
+  },
+  prepGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    width: "100%",
+    marginBottom: 16,
+  },
+  prepOptionButton: {
+    width: "48%",
+    backgroundColor: "#E5DEC9", // matches navbar background color
+    borderRadius: 18,
+    paddingVertical: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+    borderWidth: 1.5,
+    borderColor: "#D3CBAF",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 5,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        cursor: "pointer",
+        userSelect: "none",
+        boxShadow: "0 3px 8px rgba(0, 0, 0, 0.05)",
+      },
+    }),
+  },
+  prepOptionNumber: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#1E1E1D",
+  },
+  prepOptionLabel: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#1E1E1D",
+    letterSpacing: 1,
+    marginTop: 2,
+  },
+  prepCancelButton: {
+    width: "100%",
+    backgroundColor: "#1E1E1D",
+    height: 48,
+    borderRadius: 24,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 4,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        cursor: "pointer",
+        userSelect: "none",
+      },
+    }),
+  },
+  prepCancelText: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    letterSpacing: 0.8,
   },
 });

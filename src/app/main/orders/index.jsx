@@ -2,7 +2,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Print from "expo-print";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import {
   Alert,
   BackHandler,
@@ -196,6 +196,76 @@ const generateInvoiceHtml = (order, address = "None", fssai = "None", commission
   `;
 };
 
+// Live preparation countdown timer component for accepted orders
+function PrepTimerBadge({ order }) {
+  const prepMins = Number(order.preparationTime) || 10;
+  const maxSeconds = prepMins * 60;
+
+  // Calculate the target end timestamp based on local client clock
+  const targetEndTimeRef = useRef(null);
+
+  if (targetEndTimeRef.current === null) {
+    let initialRemainingSeconds = maxSeconds;
+
+    if (order.estimatedPrepEndTime && order.acceptedAt) {
+      const startMs = new Date(order.acceptedAt).getTime();
+      const endMs = new Date(order.estimatedPrepEndTime).getTime();
+      const totalDuration = endMs - startMs;
+      
+      if (totalDuration > 0) {
+        const elapsedOnServer = Date.now() - startMs;
+        if (elapsedOnServer > 0 && elapsedOnServer < totalDuration) {
+          initialRemainingSeconds = Math.floor((totalDuration - elapsedOnServer) / 1000);
+        } else if (elapsedOnServer >= totalDuration) {
+          initialRemainingSeconds = 0;
+        }
+      }
+    }
+
+    targetEndTimeRef.current = Date.now() + initialRemainingSeconds * 1000;
+  }
+
+  const [secondsLeft, setSecondsLeft] = useState(() => {
+    const remaining = Math.floor((targetEndTimeRef.current - Date.now()) / 1000);
+    return remaining > 0 ? remaining : 0;
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const remaining = Math.floor((targetEndTimeRef.current - Date.now()) / 1000);
+      if (remaining <= 0) {
+        setSecondsLeft(0);
+        clearInterval(interval);
+      } else {
+        setSecondsLeft(remaining);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  if (secondsLeft <= 0) {
+    return (
+      <View style={localStyles.arrivingBadge}>
+        <FontAwesome name="motorcycle" size={14} color="#0AB28D" style={{ marginRight: 6 }} />
+        <Text style={localStyles.arrivingBadgeText}>Delivery boy is going to arrive</Text>
+      </View>
+    );
+  }
+
+  const mins = Math.floor(secondsLeft / 60);
+  const secs = secondsLeft % 60;
+  const formattedMins = String(mins).padStart(2, "0");
+  const formattedSecs = String(secs).padStart(2, "0");
+
+  return (
+    <View style={localStyles.timerBadge}>
+      <FontAwesome name="clock-o" size={14} color="#E05638" style={{ marginRight: 6 }} />
+      <Text style={localStyles.timerBadgeText}>Prep: {formattedMins}:{formattedSecs}</Text>
+    </View>
+  );
+}
+
 export default function AcceptedOrdersPage() {
   const { orders, loading, error, refetch } = useOrders();
   const [refreshing, setRefreshing] = useState(false);
@@ -377,10 +447,8 @@ export default function AcceptedOrdersPage() {
 
           {/* Actions Row */}
           <View style={localStyles.actionsRow}>
-            {/* Accepted Badge */}
-            <View style={localStyles.acceptedBadge}>
-              <Text style={localStyles.acceptedBadgeText}>Accepted</Text>
-            </View>
+            {/* Live Prep Timer or Arriving Status Badge */}
+            <PrepTimerBadge order={item} />
 
             {/* Print Invoice Button (opens preview Modal) */}
             <Pressable
@@ -1041,5 +1109,37 @@ const localStyles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "700",
+  },
+  timerBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(224, 86, 56, 0.12)",
+    borderWidth: 1,
+    borderColor: "#E05638",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+  },
+  timerBadgeText: {
+    color: "#E05638",
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  arrivingBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(10, 178, 141, 0.15)",
+    borderWidth: 1,
+    borderColor: "#0AB28D",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+  },
+  arrivingBadgeText: {
+    color: "#0AB28D",
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 0.3,
   },
 });
