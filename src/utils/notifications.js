@@ -1,5 +1,6 @@
-import messaging from './firebaseMessaging';
 import { PermissionsAndroid, Platform } from 'react-native';
+import messaging from './firebaseMessaging';
+import { API_URL } from '../config/api';
 
 export async function requestNotificationPermission() {
   if (Platform.OS === 'web') return false;
@@ -58,7 +59,7 @@ export async function saveFCMTokenToBackend(restId, token) {
     const payload = { restId, fcmToken: token || "" };
     console.log(`Sending FCM token to backend for restId: ${restId}, token: ${token ? 'exists' : 'empty (deleting)'}`);
 
-    const response = await fetch('https://restuarentbackend.onrender.com/update-fcm', {
+    const response = await fetch(`${API_URL}/update-fcm`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

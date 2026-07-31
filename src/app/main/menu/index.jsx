@@ -9,11 +9,7 @@ import { styles as globalStyles } from "../../../styles/main.styles";
 
 const isMobile = Platform.OS === "ios" || Platform.OS === "android";
 
-const getApiUrl = () => {
-  return "https://restuarentbackend.onrender.com";
-};
-
-const API_URL = getApiUrl();
+import API_URL, { getApiUrl } from "../../../config/api";
 
 const DEMO_MENU_ITEMS = [
   { _id: "demo_item_1", itemName: "Chicken Biryani", price: 250, itemStatus: true },

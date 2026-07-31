@@ -9,11 +9,7 @@ import LogoLoader from "../../../components/LogoLoader";
 import { styles } from "../../../styles/main.styles";
 import { checkNotificationPermission, deleteFCMTokenOnBackend, requestNotificationPermission } from "../../../utils/notifications";
 
-const getApiUrl = () => {
-  return "https://restuarentbackend.onrender.com";
-};
-
-const API_URL = getApiUrl();
+import API_URL, { getApiUrl } from "../../../config/api";
 
 export default function MainPage() {
   const [loading, setLoading] = useState(true);

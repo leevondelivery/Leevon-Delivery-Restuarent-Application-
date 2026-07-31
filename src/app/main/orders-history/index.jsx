@@ -24,11 +24,7 @@ import { styles as globalStyles } from "../../../styles/main.styles";
 
 const isMobile = Platform.OS === "ios" || Platform.OS === "android";
 
-const getApiUrl = () => {
-  return "https://restuarentbackend.onrender.com";
-};
-
-const API_URL = getApiUrl();
+import API_URL, { getApiUrl } from "../../../config/api";
 
 // HTML receipt print template matching the mockup exactly
 const generateInvoiceHtml = (order, address = "None", fssai = "None", commission = 0) => {

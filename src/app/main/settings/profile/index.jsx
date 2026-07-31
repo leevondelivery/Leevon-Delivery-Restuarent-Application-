@@ -10,11 +10,7 @@ import { styles as globalStyles } from "../../../../styles/main.styles";
 
 const isMobile = Platform.OS === "ios" || Platform.OS === "android";
 
-const getApiUrl = () => {
-  return "https://restuarentbackend.onrender.com";
-};
-
-const API_URL = getApiUrl();
+import API_URL, { getApiUrl } from "../../../../config/api";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));

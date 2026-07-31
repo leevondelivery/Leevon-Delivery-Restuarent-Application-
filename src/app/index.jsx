@@ -19,11 +19,7 @@ import LogoLoader from "../components/LogoLoader";
 import { styles } from "../styles/index.styles";
 import { registerForFCMAsync, saveFCMTokenToBackend } from "../utils/notifications";
 
-const getApiUrl = () => {
-  return "https://restuarentbackend.onrender.com";
-};
-
-const API_URL = getApiUrl();
+import API_URL, { getApiUrl } from "../config/api";
 
 export default function Index() {
   const [email, setEmail] = useState("");

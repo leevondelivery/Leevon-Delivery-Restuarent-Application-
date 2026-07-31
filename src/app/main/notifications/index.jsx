@@ -19,11 +19,7 @@ import { styles as globalStyles } from "../../../styles/main.styles";
 import LogoLoader from "../../../components/LogoLoader";
 import { useOrders } from "../../../context/OrdersContext";
 
-const getApiUrl = () => {
-  return "https://restuarentbackend.onrender.com";
-};
-
-const API_URL = getApiUrl();
+import API_URL, { getApiUrl } from "../../../config/api";
 
 const orderSound = require("../../../../assets/ordernotification.wav");
 

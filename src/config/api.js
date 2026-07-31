@@ -1,6 +1,8 @@
+const API_URL = "https://restuarentbackend.onrender.com";
+
 export const getApiUrl = () => {
-  return "https://restuarentbackend.onrender.com";
+  return API_URL;
 };
 
-export const API_URL = getApiUrl();
 export default API_URL;
+export { API_URL };

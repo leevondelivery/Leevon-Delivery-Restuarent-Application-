@@ -17,11 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { styles as globalStyles } from "../../../../styles/main.styles";
 import LogoLoader from "../../../../components/LogoLoader";
 
-const getApiUrl = () => {
-  return "https://restuarentbackend.onrender.com";
-};
-
-const API_URL = getApiUrl();
+import API_URL, { getApiUrl } from "../../../../config/api";
 
 const MOCK_REJECTED = [
   {

@@ -7,13 +7,10 @@ import messaging from "../utils/firebaseMessaging";
 import { registerForFCMAsync, saveFCMTokenToBackend } from "../utils/notifications";
 import { playOrderSound, stopOrderSound, createNotificationChannel } from "../utils/orderSound";
 
+import API_URL, { getApiUrl } from "../config/api";
+
 const OrdersContext = createContext(null);
 
-const getApiUrl = () => {
-  return "https://restuarentbackend.onrender.com";
-};
-
-const API_URL = getApiUrl();
 
 export function OrdersProvider({ children }) {
   const [orders, setOrders] = useState([]);
