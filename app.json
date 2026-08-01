@@ -10,10 +10,6 @@
     "ios": {
       "icon": "./assets/expo.icon"
     },
-    "notification": {
-      "icon": "./assets/images/notification_icon.png",
-      "color": "#000000"
-    },
     "android": {
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {

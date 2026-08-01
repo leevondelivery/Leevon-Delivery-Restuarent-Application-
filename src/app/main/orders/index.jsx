@@ -2,7 +2,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Print from "expo-print";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   BackHandler,
@@ -21,7 +21,6 @@ import { useOrders } from "../../../context/OrdersContext";
 import LogoLoader from "../../../components/LogoLoader";
 import { styles as globalStyles } from "../../../styles/main.styles";
 
-import API_URL, { getApiUrl } from "../../../config/api";
 
 // HTML receipt print template matching the mockup exactly
 const generateInvoiceHtml = (order, address = "None", fssai = "None", commission = 0) => {
@@ -66,9 +65,9 @@ const generateInvoiceHtml = (order, address = "None", fssai = "None", commission
   // Grand total = sum of (discounted price × qty) for all items
   const totalAmount = Array.isArray(order.items)
     ? order.items.reduce((sum, foodItem) => {
-        const discountedPrice = (foodItem.price || 0) * (1 - commission / 100);
-        return sum + discountedPrice * (foodItem.quantity || 1);
-      }, 0).toFixed(2)
+      const discountedPrice = (foodItem.price || 0) * (1 - commission / 100);
+      return sum + discountedPrice * (foodItem.quantity || 1);
+    }, 0).toFixed(2)
     : (order.totalPrice || order.grandTotal || 0);
 
   return `
@@ -207,7 +206,7 @@ function PrepTimerBadge({ order }) {
       const startMs = new Date(order.acceptedAt).getTime();
       const endMs = new Date(order.estimatedPrepEndTime).getTime();
       const totalDuration = endMs - startMs;
-      
+
       if (totalDuration > 0) {
         const elapsedOnServer = Date.now() - startMs;
         if (elapsedOnServer > 0 && elapsedOnServer < totalDuration) {
@@ -244,7 +243,7 @@ function PrepTimerBadge({ order }) {
     return (
       <View style={localStyles.arrivingBadge}>
         <FontAwesome name="motorcycle" size={14} color="#0AB28D" style={{ marginRight: 6 }} />
-        <Text style={localStyles.arrivingBadgeText}>Delivery boy is going to arrive</Text>
+        <Text style={localStyles.arrivingBadgeText}>Savior At Door</Text>
       </View>
     );
   }
@@ -441,12 +440,11 @@ export default function AcceptedOrdersPage() {
             </View>
           </View>
 
-          {/* Actions Row */}
           <View style={localStyles.actionsRow}>
-            {/* Live Prep Timer or Arriving Status Badge */}
+           
             <PrepTimerBadge order={item} />
 
-            {/* Print Invoice Button (opens preview Modal) */}
+
             <Pressable
               onPress={() => setSelectedOrderForInvoice(item)}
               style={({ pressed }) => [
@@ -696,7 +694,7 @@ const localStyles = StyleSheet.create({
   },
   listContent: {
     flexGrow: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingTop: 16,
     paddingBottom: 120,
     gap: 16,
@@ -704,7 +702,7 @@ const localStyles = StyleSheet.create({
   orderCard: {
     backgroundColor: "#E5DEC9", // theme navbar background color
     borderRadius: 24,
-    padding: 20,
+    padding: 14,
     borderWidth: 1,
     borderColor: "#C6BEA9",
     width: "100%",
@@ -745,22 +743,22 @@ const localStyles = StyleSheet.create({
     fontSize: 12,
     color: "#777265",
     fontWeight: "600",
-    marginTop: 4,
+    marginTop: 2,
     textAlign: "center",
   },
   headerDivider: {
     height: 1,
     backgroundColor: "#C6BEA9",
     width: "100%",
-    marginTop: 12,
-    marginBottom: 12,
+    marginTop: 6,
+    marginBottom: 6,
   },
   itemTableHeader: {
     flexDirection: "row",
-    paddingBottom: 8,
+    paddingBottom: 4,
     borderBottomWidth: 1,
     borderBottomColor: "#C6BEA9",
-    marginBottom: 8,
+    marginBottom: 4,
   },
   headerColItem: {
     flex: 1,
@@ -785,7 +783,7 @@ const localStyles = StyleSheet.create({
   foodItemRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: 6,
     borderBottomWidth: 1,
     borderBottomColor: "#EADEC2",
     borderStyle: "dashed",
@@ -805,7 +803,7 @@ const localStyles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     color: "#3A3937",
-    lineHeight: 20,
+    lineHeight: 18,
   },
   foodItemQty: {
     fontSize: 14,
@@ -832,19 +830,19 @@ const localStyles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     color: "#1E1E1D",
-    marginTop: 2,
+    marginTop: 1,
   },
   dividerSolid: {
     height: 1,
     backgroundColor: "#C6BEA9",
-    marginVertical: 16,
+    marginVertical: 8,
   },
   totalsContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    paddingVertical: 4,
-    marginBottom: 8,
+    paddingVertical: 2,
+    marginBottom: 4,
   },
   totalCol: {
     alignItems: "center",
@@ -853,7 +851,7 @@ const localStyles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
     color: "#777265",
-    marginBottom: 6,
+    marginBottom: 2,
   },
   totalValueText: {
     fontSize: 15,
@@ -867,8 +865,10 @@ const localStyles = StyleSheet.create({
   },
   actionsRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: 8,
     marginTop: 8,
   },
   acceptedBadge: {
@@ -886,9 +886,12 @@ const localStyles = StyleSheet.create({
     backgroundColor: "#0066FE",
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 18,
-    paddingVertical: 10,
+    justifyContent: "center",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 20,
+    flexShrink: 1,
+    maxWidth: "100%",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -901,7 +904,7 @@ const localStyles = StyleSheet.create({
   printInvoiceButtonText: {
     color: "#FFFFFF",
     fontWeight: "700",
-    fontSize: 13,
+    fontSize: 12,
   },
   emptyContainer: {
     flex: 1,
@@ -1113,14 +1116,17 @@ const localStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E05638",
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderRadius: 14,
+    flexShrink: 1,
+    maxWidth: "100%",
   },
   timerBadgeText: {
     color: "#E05638",
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "800",
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
+    flexShrink: 1,
   },
   arrivingBadge: {
     flexDirection: "row",
@@ -1129,13 +1135,16 @@ const localStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#0AB28D",
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderRadius: 14,
+    flexShrink: 1,
+    maxWidth: "100%",
   },
   arrivingBadgeText: {
     color: "#0AB28D",
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "800",
     letterSpacing: 0.3,
+    flexShrink: 1,
   },
 });
