@@ -96,9 +96,7 @@ export default function Index() {
         const fssai = "12345678901234";
         const userEmail = trimmedEmail;
         const userPhone = "+91 7207610235";
-        // const restaurantLocation = JSON.stringify({ lat: 32.7767, lng: -96.7970 });
-        // const lat = "32.7767";
-        // const lng = "-96.7970";
+     
 
         await AsyncStorage.setItem("restId", restId);
         await AsyncStorage.setItem("restid", restId);
